@@ -1728,6 +1728,7 @@ void RCC_AHB1PeriphResetCmd(uint32_t RCC_AHB1Periph, FunctionalState NewState)
   assert_param(IS_RCC_AHB1_RESET_PERIPH(RCC_AHB1Periph));
   assert_param(IS_FUNCTIONAL_STATE(NewState));
 
+  
   if (NewState != DISABLE)
   {
     RCC->AHB1RSTR |= RCC_AHB1Periph;

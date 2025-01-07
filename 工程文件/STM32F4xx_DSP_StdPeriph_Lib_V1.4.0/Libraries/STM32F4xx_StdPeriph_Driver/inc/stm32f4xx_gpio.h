@@ -464,6 +464,7 @@ typedef struct
 /* Exported functions --------------------------------------------------------*/
 
 /*  Function used to set the GPIO configuration to the default reset state ****/
+//把GPIO对应一个组的配置全部恢复到默认状态
 void GPIO_DeInit(GPIO_TypeDef* GPIOx);
 
 /* Initialization and Configuration functions *********************************/

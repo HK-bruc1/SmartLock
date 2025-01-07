@@ -131,6 +131,7 @@ void GPIO_DeInit(GPIO_TypeDef* GPIOx)
 
   if (GPIOx == GPIOA)
   {
+    //可以把挂载在AHB1总线的外设控制器复位
     RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOA, ENABLE);
     RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOA, DISABLE);
   }

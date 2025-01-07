@@ -1,4 +1,5 @@
 .\objects\led.o: user\src\led.c
+.\objects\led.o: .\user\inc\led.h
 .\objects\led.o: .\user\inc\main.h
 .\objects\led.o: .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\stm32f4xx.h
 .\objects\led.o: .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\Include\core_cm4.h
@@ -28,4 +29,4 @@
 .\objects\led.o: .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc\stm32f4xx_usart.h
 .\objects\led.o: .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc\stm32f4xx_wwdg.h
 .\objects\led.o: .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc\misc.h
-.\objects\led.o: .\user\inc\led.h
+.\objects\led.o: .\user\inc\key.h

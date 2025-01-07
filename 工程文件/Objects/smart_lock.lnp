@@ -3,6 +3,7 @@
 ".\objects\system_stm32f4xx.o"
 ".\objects\main.o"
 ".\objects\led.o"
+".\objects\key.o"
 ".\objects\misc.o"
 ".\objects\stm32f4xx_adc.o"
 ".\objects\stm32f4xx_can.o"
