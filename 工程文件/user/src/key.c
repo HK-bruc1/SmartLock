@@ -1,5 +1,4 @@
 #include "main.h"
-#include "stm32f4xx.h"                  // Device header
 
 
 /***************************************
@@ -43,7 +42,7 @@ u8 key_scan(void){
     //对KEY1和KEY2状态检测,同一时刻只能检测到一个按键按下，并在下一次按下之前锁住状态
     if(KEY1 && key_lock){
         //消抖
-        delay_ms(15);
+        tim5Delay_Ms(20);
         if(KEY1){
             key_val = 1;
             key_lock = 0;
@@ -51,7 +50,7 @@ u8 key_scan(void){
         }
     }else if(KEY2 && key_lock){
         //消抖
-        delay_ms(15);
+        tim5Delay_Ms(20);
         if(KEY2){
             key_val = 2;
             key_lock = 0;
@@ -61,7 +60,7 @@ u8 key_scan(void){
     //都松开的情况下解锁，
     if(KEY1==0 && KEY2==0) {
         //松开消抖
-        delay_ms(15);
+        tim5Delay_Ms(20);
         key_lock = 1;
     }
 

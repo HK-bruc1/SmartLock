@@ -30,3 +30,15 @@
 .\objects\key.o: .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc\misc.h
 .\objects\key.o: .\user\inc\led.h
 .\objects\key.o: .\user\inc\key.h
+.\objects\key.o: .\user\inc\main.h
+.\objects\key.o: .\user\inc\usart.h
+.\objects\key.o: .\user\inc\nvic.h
+.\objects\key.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+.\objects\key.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+.\objects\key.o: .\user\inc\selfprintf.h
+.\objects\key.o: .\user\inc\tim.h
+.\objects\key.o: .\user\inc\delay.h
+.\objects\key.o: .\user\inc\door.h
+.\objects\key.o: .\user\inc\at24cxx.h
+.\objects\key.o: .\user\inc\w25q64.h
+.\objects\key.o: .\user\inc\lcd.h

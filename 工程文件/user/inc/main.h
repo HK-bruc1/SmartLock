@@ -1,13 +1,42 @@
 #ifndef MAIN_H
 #define MAIN_H
+//防止重复包含导致重复定义（如结构体）
 
-//所有外部变量声明
+
 //所有头文件声明
 
 #include "stm32f4xx.h"                  // Device header
 #include "led.h"
 #include "key.h"
+#include "usart.h"
+#include "nvic.h"
+#include "string.h"
+#include "stdio.h"
+#include "selfprintf.h"
+#include "tim.h"
+#include "delay.h"
+#include "door.h"
+#include "at24cxx.h"
+#include "w25q64.h"
+#include "lcd.h"
 
-void delay_ms(u32 ms);
+
+
+//声明用于串口传输数据的结构体
+typedef struct usart
+{
+    u8 usart_buff[100];
+    u32 len;
+    u8 usart_flag;
+}USART_t;
+
+
+//所有外部变量声明
+extern USART_t usart1;
+extern u16 tim9_count [10];
+extern char at24c02_rec_str[];
+
+
+
 
 #endif

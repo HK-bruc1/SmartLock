@@ -231,6 +231,18 @@ void Init_Device(void) {
 }
 ```
 
+### 库函数的学习重点
+
+- 程序实现思路很重要，其他都可以使用库函数实现。
+
+- 如果不能理解库函数参数的含义，需要知道根据库函数溯源到对应的寄存器位，根据手册知道具体的含义。
+- 比如常见的串口配置思路：   
+  - 串口初始化： 
+    - GPIO控制器配置 
+    - 串口控制器配置 
+    - 用于中断接收的NVIC配置
+  - 串口控制器的DMA使能可以在对应DMA功能函数时单独开启，这样就不用修改原来的代码了。
+
 ## 其他
 
 ### 时钟总线上的外设复位寄存器
@@ -258,3 +270,63 @@ void Init_Device(void) {
    - 通过显式先写 `0`，可以清除任何可能的残留复位状态。
 2. **确保复位信号完整：**
    - 某些硬件逻辑需要完整的 `0` -> `1` 的上升沿来触发复位。如果不先写 `0`，可能导致复位逻辑无法正常触发。
+
+
+
+### 库函数开发的注意事项
+
+**事项1**
+
+- 还是先有程序思路再写代码，因为有一些库函数也没有实现，就只能手动寄存器实现。
+  - 比如`USART_ClearITPendingBit(USART1, USART_IT_IDLE);`清除不了，没有这样的参数。
+  - 需要手动实现
+- 配置时有时候会跨函数，比如串口，GPIO口，串口，NVIC等，没有思路容易乱。
+
+**事项2**
+
+- 串口通信时GPIO配置复用功能时，要在GPIO基本设置的前面，外设总线时钟使能的后面，否则会偷发一个数据
+
+### 库函数的通用配置思路
+
+**比如定时器的延迟函数**
+
+```c
+void tim5Delay_Ms(u16 ms)
+{
+    // 使能TIM5的时钟
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM5, ENABLE);
+    
+    // 禁用定时器以进行配置
+    TIM_Cmd(TIM5, DISABLE);
+    
+    // 配置TIM6的预分频器和自动重载值
+    TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure = {0};
+    //默认一个结构体配置
+    TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
+    
+    //只需要配置需要的参数，其他就用默认的
+    TIM_TimeBaseStructure.TIM_Prescaler = 8400 - 1;
+    TIM_TimeBaseStructure.TIM_Period = ms * 10 - 1;
+    // 选择向上计数模式
+    TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+    //这里面也会产生一个更新事件，不用再写一个更新事件。
+    TIM_TimeBaseInit(TIM5, &TIM_TimeBaseStructure);
+    
+    
+    // 清除更新标志位
+    TIM_ClearFlag(TIM5, TIM_FLAG_Update);
+    
+    // 使能定时器
+    TIM_Cmd(TIM5, ENABLE);
+    
+    // 等待更新事件完成
+    while(!TIM_GetFlagStatus(TIM5, TIM_FLAG_Update));
+    
+    // 可选：清除更新标志位
+    TIM_ClearFlag(TIM5, TIM_FLAG_Update);
+    // 禁用定时器以进行配置，关闭定时器或者设置单次计数模式
+    TIM_Cmd(TIM5, DISABLE);
+}
+```
+
+**先整理好配置思路，按照思路调用对应函数即可。不相关参数，可以不赋值（结构体），也可以通过先默认初始化配置结构体，再根据需求修改特定参数的配置思路，可以使代码更简洁、易读，并减少配置错误的风险。这种方法适用于所有外设的配置，推荐在开发过程中广泛使用。**

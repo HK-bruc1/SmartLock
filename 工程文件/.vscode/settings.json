@@ -5,8 +5,13 @@
     "marscode.enableInlineCommand": true,
     "marscode.chatLanguage": "cn",
     "marscode.enableCodelens": {
-        "enableInlineDocumentation": false,
+        "enableInlineDocumentation": true,
         "enableInlineUnitTest": false,
-        "enableInlineExplain": true
+        "enableInlineExplain": false
+    },
+    "files.associations": {
+        "main.h": "c",
+        "selfprintf.h": "c",
+        "stm32f4xx.h": "c"
     }
 }
