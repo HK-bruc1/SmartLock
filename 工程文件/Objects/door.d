@@ -42,3 +42,5 @@
 .\objects\door.o: .\user\inc\at24cxx.h
 .\objects\door.o: .\user\inc\w25q64.h
 .\objects\door.o: .\user\inc\lcd.h
+.\objects\door.o: .\user\inc\font.h
+.\objects\door.o: .\user\inc\function.h

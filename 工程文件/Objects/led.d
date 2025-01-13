@@ -42,3 +42,5 @@
 .\objects\led.o: .\user\inc\at24cxx.h
 .\objects\led.o: .\user\inc\w25q64.h
 .\objects\led.o: .\user\inc\lcd.h
+.\objects\led.o: .\user\inc\font.h
+.\objects\led.o: .\user\inc\function.h

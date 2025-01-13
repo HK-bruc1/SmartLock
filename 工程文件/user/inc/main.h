@@ -19,7 +19,12 @@
 #include "at24cxx.h"
 #include "w25q64.h"
 #include "lcd.h"
+#include "font.h"
+#include "function.h"
 
+
+//宏定义,字库擦除起始地址
+#define ZK_ADDR 0x020000
 
 
 //声明用于串口传输数据的结构体
@@ -35,6 +40,7 @@ typedef struct usart
 extern USART_t usart1;
 extern u16 tim9_count [10];
 extern char at24c02_rec_str[];
+extern u8 zk_flag;
 
 
 

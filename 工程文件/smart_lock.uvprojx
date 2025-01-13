@@ -517,6 +517,31 @@
               <FileType>5</FileType>
               <FilePath>.\user\inc\lcd.h</FilePath>
             </File>
+            <File>
+              <FileName>font.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\user\src\font.c</FilePath>
+            </File>
+            <File>
+              <FileName>font.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\user\inc\font.h</FilePath>
+            </File>
+            <File>
+              <FileName>systemPic.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\user\src\systemPic.c</FilePath>
+            </File>
+            <File>
+              <FileName>function.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\user\src\function.c</FilePath>
+            </File>
+            <File>
+              <FileName>function.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\user\inc\function.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

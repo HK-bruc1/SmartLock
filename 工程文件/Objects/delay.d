@@ -42,3 +42,5 @@
 .\objects\delay.o: .\user\inc\at24cxx.h
 .\objects\delay.o: .\user\inc\w25q64.h
 .\objects\delay.o: .\user\inc\lcd.h
+.\objects\delay.o: .\user\inc\font.h
+.\objects\delay.o: .\user\inc\function.h

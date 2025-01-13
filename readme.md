@@ -288,7 +288,7 @@ void Init_Device(void) {
 
 ### 库函数的通用配置思路
 
-**比如定时器的延迟函数**
+#### **比如定时器的延迟函数**
 
 ```c
 void tim5Delay_Ms(u16 ms)
@@ -330,3 +330,14 @@ void tim5Delay_Ms(u16 ms)
 ```
 
 **先整理好配置思路，按照思路调用对应函数即可。不相关参数，可以不赋值（结构体），也可以通过先默认初始化配置结构体，再根据需求修改特定参数的配置思路，可以使代码更简洁、易读，并减少配置错误的风险。这种方法适用于所有外设的配置，推荐在开发过程中广泛使用。**
+
+#### 是否可以使用“|”一起配置？
+
+建议都分开写避免错误，但是分开写时必须保证每配置一个都是被赋值到寄存器中的，不然会被覆盖。
+
+```c
+GPIO_InitStruct.GPIO_Pin = GPIO_Pin_5;
+GPIO_InitStruct.GPIO_Pin = GPIO_Pin_6;
+GPIO_InitStruct.GPIO_Pin = GPIO_Pin_7;
+GPIO_Init(GPIOA, &GPIO_InitStruct); // 只配置Pin7
+```

@@ -7,14 +7,43 @@
  * 
  */
 void USART1_IRQHandler(void){
+    u8 data;
+    //宏定义不能改动，所以另外赋值接收起始地址
+    static u32 zk_addr_val = ZK_ADDR;
+    //大规模数据传输，有波动，利用空闲中断判断是否传输完成有误触现象
+    static u32 zk_cont = 0x00141F58;
+
+
     //判断是接收中断信号触发
     if(USART_GetITStatus(USART1, USART_IT_RXNE)){
         //清除中断标志位
         USART_ClearITPendingBit(USART1, USART_IT_RXNE);
-        //紧急事件(只接受不做处理),每次之能接收一个字节数据，字符串的话，就是一个字符
-        //输入数据寄存器数据有了数据之后就触发中断，注意这里不是输入移位寄存器
-        usart1.usart_buff[usart1.len++] = USART_ReceiveData(USART1);
+        //紧急事件(只接受不做处理),每次只能接收一个字节数据，字符串的话，就是一个字符数组
+
+        //判断是否开启字库更新标志,否则照常接收
+        if(zk_flag == 1) {
+             //接收上位机传递过来的字库数据
+            data = USART_ReceiveData(USART1);
+            //接收到一个字节，直接使用SPI写w25q64一个字节
+            w25q64_page_write(zk_addr_val,1,&data);
+            //工作灯打开
+            LED4_ON;
+            //地址自增
+            zk_addr_val++;
+            zk_cont--;
+            if(zk_cont == 0) {
+                printf("字库烧录完成，请复位设备\r\n");
+                LED4_OFF;
+                //关闭字库更新标志
+                zk_flag = 0;
+            }
+        }else {
+            //常规接收,写入全局数组中，供主控程序使用
+            //输入数据寄存器数据有了数据之后就触发中断，注意这里不是输入移位寄存器
+            usart1.usart_buff[usart1.len++] = USART_ReceiveData(USART1);
+        }
     }
+
 
     //判断是空闲中断信号触发
     if(USART_GetITStatus(USART1, USART_IT_IDLE)){

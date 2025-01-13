@@ -42,3 +42,5 @@
 .\objects\selfprintf.o: .\user\inc\at24cxx.h
 .\objects\selfprintf.o: .\user\inc\w25q64.h
 .\objects\selfprintf.o: .\user\inc\lcd.h
+.\objects\selfprintf.o: .\user\inc\font.h
+.\objects\selfprintf.o: .\user\inc\function.h

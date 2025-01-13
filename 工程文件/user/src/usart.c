@@ -53,8 +53,8 @@ void usart1Init(u32 baud){
 
         NVIC_InitTypeDef NVIC_InitStruct = {0};
         NVIC_InitStruct.NVIC_IRQChannel = USART1_IRQn;//只能内核文件中找了,无法跳转
-        NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = 1; // 抢占优先级为0
-        NVIC_InitStruct.NVIC_IRQChannelSubPriority = 1; // 响应优先级为0
+        NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = 1; // 抢占优先级为1
+        NVIC_InitStruct.NVIC_IRQChannelSubPriority = 1; // 响应优先级为1
         //单向使能USART1的中断信号通道
         NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
         NVIC_Init(&NVIC_InitStruct);

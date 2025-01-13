@@ -42,3 +42,5 @@
 .\objects\w25q64.o: .\user\inc\at24cxx.h
 .\objects\w25q64.o: .\user\inc\w25q64.h
 .\objects\w25q64.o: .\user\inc\lcd.h
+.\objects\w25q64.o: .\user\inc\font.h
+.\objects\w25q64.o: .\user\inc\function.h
