@@ -542,6 +542,36 @@
               <FileType>5</FileType>
               <FilePath>.\user\inc\function.h</FilePath>
             </File>
+            <File>
+              <FileName>voice.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\user\src\voice.c</FilePath>
+            </File>
+            <File>
+              <FileName>voice.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\user\inc\voice.h</FilePath>
+            </File>
+            <File>
+              <FileName>iwdg.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\user\src\iwdg.c</FilePath>
+            </File>
+            <File>
+              <FileName>iwdg.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\user\inc\iwdg.h</FilePath>
+            </File>
+            <File>
+              <FileName>bs8116.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\user\src\bs8116.c</FilePath>
+            </File>
+            <File>
+              <FileName>bs8116.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\user\inc\bs8116.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

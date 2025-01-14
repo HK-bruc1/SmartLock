@@ -44,3 +44,6 @@
 .\objects\selfprintf.o: .\user\inc\lcd.h
 .\objects\selfprintf.o: .\user\inc\font.h
 .\objects\selfprintf.o: .\user\inc\function.h
+.\objects\selfprintf.o: .\user\inc\voice.h
+.\objects\selfprintf.o: .\user\inc\iwdg.h
+.\objects\selfprintf.o: .\user\inc\bs8116.h

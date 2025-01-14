@@ -44,3 +44,6 @@
 .\objects\nvic.o: .\user\inc\lcd.h
 .\objects\nvic.o: .\user\inc\font.h
 .\objects\nvic.o: .\user\inc\function.h
+.\objects\nvic.o: .\user\inc\voice.h
+.\objects\nvic.o: .\user\inc\iwdg.h
+.\objects\nvic.o: .\user\inc\bs8116.h

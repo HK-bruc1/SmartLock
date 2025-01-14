@@ -44,3 +44,6 @@
 .\objects\w25q64.o: .\user\inc\lcd.h
 .\objects\w25q64.o: .\user\inc\font.h
 .\objects\w25q64.o: .\user\inc\function.h
+.\objects\w25q64.o: .\user\inc\voice.h
+.\objects\w25q64.o: .\user\inc\iwdg.h
+.\objects\w25q64.o: .\user\inc\bs8116.h

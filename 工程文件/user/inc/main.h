@@ -21,6 +21,9 @@
 #include "lcd.h"
 #include "font.h"
 #include "function.h"
+#include "voice.h"
+#include "iwdg.h"
+#include "bs8116.h"
 
 
 //宏定义,字库擦除起始地址

@@ -44,3 +44,6 @@
 .\objects\delay.o: .\user\inc\lcd.h
 .\objects\delay.o: .\user\inc\font.h
 .\objects\delay.o: .\user\inc\function.h
+.\objects\delay.o: .\user\inc\voice.h
+.\objects\delay.o: .\user\inc\iwdg.h
+.\objects\delay.o: .\user\inc\bs8116.h

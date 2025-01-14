@@ -44,3 +44,6 @@
 .\objects\key.o: .\user\inc\lcd.h
 .\objects\key.o: .\user\inc\font.h
 .\objects\key.o: .\user\inc\function.h
+.\objects\key.o: .\user\inc\voice.h
+.\objects\key.o: .\user\inc\iwdg.h
+.\objects\key.o: .\user\inc\bs8116.h

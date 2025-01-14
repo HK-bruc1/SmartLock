@@ -44,3 +44,6 @@
 .\objects\tim.o: .\user\inc\lcd.h
 .\objects\tim.o: .\user\inc\font.h
 .\objects\tim.o: .\user\inc\function.h
+.\objects\tim.o: .\user\inc\voice.h
+.\objects\tim.o: .\user\inc\iwdg.h
+.\objects\tim.o: .\user\inc\bs8116.h

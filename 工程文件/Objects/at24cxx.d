@@ -44,3 +44,6 @@
 .\objects\at24cxx.o: .\user\inc\lcd.h
 .\objects\at24cxx.o: .\user\inc\font.h
 .\objects\at24cxx.o: .\user\inc\function.h
+.\objects\at24cxx.o: .\user\inc\voice.h
+.\objects\at24cxx.o: .\user\inc\iwdg.h
+.\objects\at24cxx.o: .\user\inc\bs8116.h
