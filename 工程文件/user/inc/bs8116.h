@@ -20,6 +20,7 @@
 
 void BS8116_init(void);
 u8 BS8116_ReadKey(void);
+u8 BS8116_Key_scan(void);
 
 
 

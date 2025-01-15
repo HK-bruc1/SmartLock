@@ -41,7 +41,7 @@ void USART1_IRQHandler(void){
                 //若要更改重载值， IWDG_SR 中的 RVU 位必须为 0。
                 //RVU： 看门狗计数器重载值更新 (Watchdog counter reload value update)
                 //可通过硬件将该位置 1 以指示重载值正在更新。当在 VDD 电压域下完成重载值更新操作后
-                //（需要多达 5 个 RC 40 kHz 周期），会通过硬件将该位复位。
+                //（需要多达 5 个 RC 40 kHz 周期）毫秒级，会通过硬件将该位复位。
                 //重载值只有在 RVU 位为 0 时才可更新。直接修改重载值可能会失败，因为没有确认上一次更新是否完成
                 //IWDG_PR 和 IWDG_RLR 寄存器具有写访问保护。若要修改寄存器，必须首先对 IWDG_KR
                 //寄存器写入代码 0x5555。而写入其他值则会破坏该序列，从而使寄存器访问保护再次生效。
@@ -51,7 +51,8 @@ void USART1_IRQHandler(void){
                 while(IWDG->SR & (1U<<1));    // 等待之前的重载值加载完成，避免新重载值被覆盖或者错乱
                 IWDG->RLR = 250;
                 IWDG->KR = 0xAAAA;
-                //直接软件复位不是更快？？？
+                //直接软件复位不是更快,内核级别函数
+	            //NVIC_SystemReset();
                 while(1);
             }
         }else {

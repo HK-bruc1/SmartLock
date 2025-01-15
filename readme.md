@@ -243,6 +243,129 @@ void Init_Device(void) {
     - 用于中断接收的NVIC配置
   - 串口控制器的DMA使能可以在对应DMA功能函数时单独开启，这样就不用修改原来的代码了。
 
+## 更新字库后想通过软件复位重新加载字库
+
+在 STM32F401（以及其他基于 Cortex-M 的 STM32 系列）中，软件复位一般是通过系统控制寄存器（SCB，System Control Block）实现的。SCB 寄存器是 Cortex-M 内核的一部分，而不是外设寄存器，因此在参考手册中找不到专门的复位寄存器。
+
+你可以通过调用 CMSIS 提供的内核函数，或者直接操作 SCB 寄存器来实现复位。
+
+### **使用 CMSIS 内核函数**
+
+CMSIS 提供了标准化的函数，直接调用即可完成复位操作。这个函数是：
+
+```c
+#include "stm32f4xx.h"
+
+void NVIC_SystemReset(void);
+```
+
+调用方式：
+
+```c
+int main(void) {
+    // 初始化代码...
+
+    // 执行软件复位
+    NVIC_SystemReset();
+
+    while (1) {
+        // 不会执行到这里，因为系统已复位
+    }
+}
+```
+
+原理
+
+`NVIC_SystemReset()` 函数底层操作 SCB 寄存器中的 `AIRCR`（Application Interrupt and Reset Control Register），设置复位位（`SYSRESETREQ` 位）来触发系统复位。
+
+### 直接操作 SCB 寄存器（手册上没有，也不好配置）
+
+如果不使用 CMSIS 函数，也可以直接手动配置 `SCB->AIRCR` 来实现复位。操作步骤如下：
+
+```c
+#include "stm32f4xx.h"
+
+#define AIRCR_VECTKEY_MASK    ((uint32_t)0x05FA0000) // 写入密钥值
+
+void software_reset(void) {
+    SCB->AIRCR = AIRCR_VECTKEY_MASK | (1 << SCB_AIRCR_SYSRESETREQ_Pos);
+    while (1); // 等待复位
+}
+
+int main(void) {
+    // 初始化代码...
+
+    // 执行软件复位
+    software_reset();
+
+    while (1) {
+        // 不会执行到这里，因为系统已复位
+    }
+}
+```
+
+注意
+
+1. `AIRCR_VECTKEY_MASK` 是一个写保护密钥，写入时必须使用 `0x5FA`，否则写入无效。
+2. 设置 `SYSRESETREQ` 位 (`1 << SCB_AIRCR_SYSRESETREQ_Pos`) 即触发软件复位。
+3. 复位后，所有外设和系统状态都会恢复为初始状态，类似于硬件复位。
+
+------
+
+总结
+
+如果你使用的是官方的 STM32 HAL 库或标准库，直接调用 `NVIC_SystemReset()` 是最简单和推荐的方式。如果你想更底层地操作，可以直接配置 SCB 寄存器。两种方法效果完全相同。
+
+## 中途修改看门狗的重载值
+
+```c
+void iwdg_init(void)
+{
+    //时钟源配置-开启低速时钟
+    RCC->CSR |= (1U<<0);
+    //等待时钟稳定
+    while(!(RCC->CSR & (1U<<1)));
+    //解除写保护
+    IWDG->KR = 0x5555;
+    //设置分频为128分频,根据具体情况确定时间，32 kHz 低速内部 RC (LSI RC)，该 RC 用于驱动独立看门狗
+    //250次/s
+    IWDG->PR = 5;     //直接赋值更清晰
+    //重装载值设置为2500 (超时时间约10秒)
+    IWDG->RLR = 2500;
+    //重载到计数器,任何时候将关键字 0xAAAA 写到 IWWDG_KR 寄存器中， 
+    //IWDG_RLR 的值就会被重载到计数器，从而避免产生看门狗复位。
+    IWDG->KR = 0xAAAA;//此时写保护再次开启
+    //启动看门狗
+    IWDG->KR = 0xCCCC;
+    
+    printf("看门狗启动\r\n");
+}
+
+
+//独立喂狗程序
+void iwdg_feed(void)
+{
+    IWDG->KR = 0xAAAA;
+}
+
+
+//若要更改重载值， IWDG_SR 中的 RVU 位必须为 0。
+//RVU： 看门狗计数器重载值更新 (Watchdog counter reload value update)
+//可通过硬件将该位置 1 以指示重载值正在更新。当在 VDD 电压域下完成重载值更新操作后
+//（需要多达 5 个 RC 40 kHz 周期）毫秒级，会通过硬件将该位复位。
+//重载值只有在 RVU 位为 0 时才可更新。直接修改重载值可能会失败，因为没有确认上一次更新是否完成
+//IWDG_PR 和 IWDG_RLR 寄存器具有写访问保护。若要修改寄存器，必须首先对 IWDG_KR
+//寄存器写入代码 0x5555。而写入其他值则会破坏该序列，从而使寄存器访问保护再次生效。
+//这意味着重装载操作（即写入 0xAAAA）也会启动写保护功能。   
+//解除写保护
+IWDG->KR = 0x5555;
+while(IWDG->SR & (1U<<1));    // 等待之前的重载值加载完成，避免新重载值被覆盖或者错乱
+IWDG->RLR = 250;
+IWDG->KR = 0xAAAA;
+```
+
+
+
 ## 其他
 
 ### 时钟总线上的外设复位寄存器

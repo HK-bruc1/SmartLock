@@ -460,14 +460,59 @@ u8 BS8116_ReadKey(void)
 	bs8116_iic_send_ack(1);        //不需要数据了
 	bs8116_iic_stop( );
 	//key值就是键值寄存器的总体数据
-	printf("key:0x%x\r\n",key);	
+	//printf("key:0x%x\r\n",key);	
 
 	//重新映射键值，因为物理键盘并不对应BS8116的寄存器键值，布线困难
-	
-	
+	switch(key)
+	{
+		case 0X0001:return   '1';break;
+		case 0X0400:return   '2';break;
+		case 0X0080:return   '3';break;     
+		case 0X0002:return   '4';break;
+		case 0x0800:return   '5';break;
+		case 0X0040:return   '6';break;
+		case 0X0008:return   '7';break;
+		case 0X0100:return   '8';break;
+		case 0X0020:return   '9';break;
+		case 0X0004:return   '*';break;
+		case 0X0200:return   '0';break;
+		case 0X0010:return   '#';break;
+	}		
 	
 	return 0xff;
 }
+
+
+/***********************************************
+*函数名    :BS8116_Key_scan
+*函数功能  :BS8116按键扫描
+*函数参数  :无
+*函数返回值:u8
+*函数描述  :跟物理按键扫描一个思路，不过判断是否有按键按下通过IRQ判断
+************************************************/
+u8 BS8116_Key_scan(void){
+	//默认键值
+	u8 key = 0xff;
+	//使用状态位锁定状态
+	static u8 key_flag = 1;
+	if(!BS8116_IRQ && key_flag){
+		//有按键按下就读取键值
+		key = BS8116_ReadKey();
+		//判断有效键值才上锁，有时候会误判，没按但是BS8116_IRQ有响应
+		//键值无效，此时需要用户抬起再按下(在连续按的过程中)。用户体验很不好
+		if(key != 0xff){
+			key_flag = 0;
+			voice(Di);
+		}
+	}
+	//所有按键松开解锁
+	if(BS8116_IRQ){
+		key_flag = 1;
+	}
+
+	return key;
+}
+
 
 
 

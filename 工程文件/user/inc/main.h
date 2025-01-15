@@ -26,8 +26,13 @@
 #include "bs8116.h"
 
 
+
 //宏定义,字库擦除起始地址
 #define ZK_ADDR 0x020000
+//第一次开机标志位的值
+#define OPEN_FLAG 0xff
+
+
 
 
 //声明用于串口传输数据的结构体

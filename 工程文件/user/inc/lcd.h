@@ -66,8 +66,10 @@ typedef struct _HEADCOLOR
 
 
 void LCD_clear(u16 color);
-void LCD_xy_clear(u16 x_start,u16 y_start,u16 x_end,u16 y_end,u16 color);
+void LCD_xy_clear(u16 x,u16 y,u16 w,u16 h,u16 color,u8 mode,u8 *pic);
 void LCD_init(void);
+void LCD_Ring(u16 x,u16 y,u16 r,u16 colour);
+void LCD_shiRing(u16 x,u16 y,u16 r,u16 colour);
 void LCD_Point(u16 x,u16 y,u16 color);
 void LCD_dis_ch(u16 x,u16 y,u8 ch,u16 color,u8 mode,u16 b_color,u8 size);
 void LCD_dis_hz(u16 x,u16 y,u8 *hz,u16 color,u8 mode,u16 b_color,u8 size);
