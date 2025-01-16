@@ -249,8 +249,8 @@ void LCD_init(void)
 	
 	//开背光
 	LCD_LED_ON;
-	//清屏
-    LCD_clear(BLACK);
+	//清屏，后面设计界面时会有打印图片，不用刷，否则会出现先刷黑屏在打印图片
+    //LCD_clear(BLACK);
 }
 
 
@@ -668,6 +668,150 @@ void LCD_dis_pic(u16 x,u16 y,const u8 *pic){
 	}
 
 }
+
+
+
+/**********************************************
+*函数名    ：LCD_dis_number_val
+*函数功能  ：显示艺术字符串
+*函数参数  ：u16 x,u16 y,u8 *numstr,u16 color,u8 mode,u16 b_color
+*函数返回值：无
+*函数描述  ：mode 传入1  就带背景颜色
+			mode 传入0  就不带背景颜色
+************************************************/
+void LCD_dis_number_val(u16 x,u16 y,u8 *numstr,u16 color,u8 mode,u16 b_color)
+{
+	u16 n,i,j;
+	//48*48 点阵的显示，取出来一行48像素点是否打点的模数组元素个数是6个，6*8=48刚好判断一行每一个像素点是否打点
+	//8个字节的数据类型刚刚好
+	long long temp;
+	
+	
+	//遍历输入字符串逐个显示
+	while(*numstr!='\0')
+	{
+		//每换一个输入字符的显示，n因为循环总能从第一个字符数组开始判断偏移量
+		n = 0;
+		/*计算出每一个要显示的艺术字与第一个艺术字符偏移量，const u8 numb_table[] = "0123456789:Z";*/
+		while(numb_table[n] != '\0')
+		{
+			if(*numstr == numb_table[n])
+			{
+				//从第一个开始找，找到就结束这个字符偏移的计算。n 就是对应字符的偏移量
+				break;
+			}
+			n++;
+		}
+
+		//n自增到尾0结束符号了，全部找完了，没有对应字符，自然就没有模数组数据
+		if(numb_table[n] == '\0')
+		{
+			return;
+		}
+		
+		
+		//一共的行数循环：48行
+		for(i=0;i<48;i++)
+		{
+			//取出一行的像素点的模数组元素，48个像素点，需要取出6个模数组元素凑成一行是否打点的判断
+			//0 1 2 3 4 5   第二次：6 7 8 9 10 11依次推算
+			//一个字符48*48，对应的模数组元素个数是288个：一行需要6个模数组元素，6*48=288
+			temp = (long long)number48[n*288+6*i]<<40 | (long long)number48[n*288+6*i+1]<<32 | (long long)number48[n*288+6*i+2]<<24 | (long long)number48[n*288+6*i+3]<<16 | (long long)number48[n*288+6*i+4]<<8 | (long long)number48[n*288+6*i+5];
+			//每行的像素点个数循环，拿到一行是否打点的模数据后逐位判断
+			for(j=0;j<48;j++)
+			{
+				//判断要打点的像素点，从高位到低位逐个判断
+				if(temp & ((long long)1<<(47-j)))
+				{
+					LCD_Point(x+j,y+i,color);
+				}
+				else
+				{
+					//不打点的像素点的颜色
+					if(mode == 1)
+					{
+						LCD_Point(x+j,y+i,b_color);
+					}
+				}
+			}
+		}
+		
+		//继续判断下一个输入字符串
+		numstr++;
+		//偏移到下一个字符显示的位置
+		x+=48;
+	}
+}
+
+
+
+
+
+/**********************************************
+*函数名    ：LCD_dis_number_pic
+*函数功能  ：在图片上显示艺术字符串 
+*函数参数  ：u16 x,u16 y,u8 *numstr,u16 color,u8 mode,const u8 *pic
+*函数返回值：无
+*函数描述  ：mode 传入1  就带背景颜色
+						mode 传入0  就不带背景颜色
+************************************************/
+void LCD_dis_number_pic(u16 x,u16 y,u8 *numstr,u16 color,u8 mode,const u8 *pic)
+{
+	u16 n,i,j;
+	long long temp;
+	//一个像素点的颜色值占两个字节数据，需要一次性从模数组中取出两个元素
+	u16 *b_pic;
+	
+	
+	while(*numstr!='\0')
+	{
+		n = 0;
+		/*计算出要显示的艺术字与第一个艺术字符偏移量*/
+		while(numb_table[n] != '\0')
+		{
+			if(*numstr == numb_table[n])
+			{
+				break;
+			}
+			n++;
+		}
+		if(numb_table[n] == '\0')
+		{
+			return;
+		}
+		
+		
+		//一共的行数循环
+		for(i=0;i<48;i++)
+		{
+			temp = (long long)number48[n*288+6*i]<<40 | (long long)number48[n*288+6*i+1]<<32 | (long long)number48[n*288+6*i+2]<<24 | (long long)number48[n*288+6*i+3]<<16 | (long long)number48[n*288+6*i+4]<<8 | (long long)number48[n*288+6*i+5];
+			//每行的像素点个数循环
+			for(j=0;j<48;j++)
+			{
+				//判断要打点的像素点
+				if(temp & ((long long)1<<(47-j)))
+				{
+					LCD_Point(x+j,y+i,color);
+				}
+				else
+				{
+					if(mode == 1)
+					{
+						//背景色填充对应位置的颜色值，找到对应位置像素点的颜色值
+						//先跳过图片模数组的头部信息，再根据像素点的坐标偏移量找到对应像素点的颜色值 
+						//先算Y轴的像素点偏移量，再算X轴的像素点偏移量，最后总数乘以2，因为一个像素点的颜色值占两个字节数据
+						b_pic = (u16 *)(pic+sizeof(HEADCOLOR)+((y+i)*LCD_W+(x+j))*2);
+						LCD_Point(x+j,y+i,*b_pic);
+					}
+				}
+			}
+		}
+		
+		numstr++;
+		x+=48;
+	}
+}
+
 
 
 

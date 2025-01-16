@@ -47,3 +47,4 @@
 .\objects\font.o: .\user\inc\voice.h
 .\objects\font.o: .\user\inc\iwdg.h
 .\objects\font.o: .\user\inc\bs8116.h
+.\objects\font.o: .\user\inc\rtc.h

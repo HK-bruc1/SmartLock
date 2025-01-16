@@ -47,3 +47,4 @@
 .\objects\door.o: .\user\inc\voice.h
 .\objects\door.o: .\user\inc\iwdg.h
 .\objects\door.o: .\user\inc\bs8116.h
+.\objects\door.o: .\user\inc\rtc.h

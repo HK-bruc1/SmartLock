@@ -15,6 +15,13 @@ u8 zk_flag = 0;
 //BS8116按键值
 u8 key_val;
 
+//界面编号(看默认进哪一个界面：主界面)
+u16 page_mode=1;
+
+//RTC用于参数传递
+RTC_TimeTypeDef RTC_TimeStruct;
+RTC_DateTypeDef RTC_DateStruct;
+
 
 
 
@@ -44,6 +51,8 @@ int main (void){
 	iwdg_init();
 	//门电机的初始化
 	door_init();
+	//RTC初始化
+	rtc_init();
 
 	//定时器9的定时中断初始化,1ms进入一次中断
 	tim9_it_ms(1);
@@ -62,8 +71,15 @@ int main (void){
 		//赋值看门狗
 		iwdg_feed();
 		key_val = BS8116_Key_scan();
-		open_passward(key_val);
 		
+		//由界面编号决定按键值给谁使用，因为多个界面需要按键值操作
+		switch(page_mode){
+			case 1:main_page(key_val);break;
+
+		}
+		
+
+
 	}
 	return 1;
 }

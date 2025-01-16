@@ -47,3 +47,4 @@
 .\objects\selfprintf.o: .\user\inc\voice.h
 .\objects\selfprintf.o: .\user\inc\iwdg.h
 .\objects\selfprintf.o: .\user\inc\bs8116.h
+.\objects\selfprintf.o: .\user\inc\rtc.h

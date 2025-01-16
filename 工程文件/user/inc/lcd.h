@@ -75,6 +75,8 @@ void LCD_dis_ch(u16 x,u16 y,u8 ch,u16 color,u8 mode,u16 b_color,u8 size);
 void LCD_dis_hz(u16 x,u16 y,u8 *hz,u16 color,u8 mode,u16 b_color,u8 size);
 void LCD_dis(u16 x,u16 y,u8 *str,u16 color,u8 mode,u16 b_color,u8 size);
 void LCD_dis_pic(u16 x,u16 y,const u8 *pic);
+void LCD_dis_number_val(u16 x,u16 y,u8 *numstr,u16 color,u8 mode,u16 b_color);
+void LCD_dis_number_pic(u16 x,u16 y,u8 *numstr,u16 color,u8 mode,const u8 *pic);
 
 
 

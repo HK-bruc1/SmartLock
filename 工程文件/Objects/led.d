@@ -47,3 +47,4 @@
 .\objects\led.o: .\user\inc\voice.h
 .\objects\led.o: .\user\inc\iwdg.h
 .\objects\led.o: .\user\inc\bs8116.h
+.\objects\led.o: .\user\inc\rtc.h

@@ -98,6 +98,9 @@ TIM1_BRK_TIM9_IRQHandler(void){
         tim9_count[0]--;
         //led3呼吸灯
         tim9_count[1]++;
+        //获取RTC时间的时机
+        tim9_count[2]++;
+
 
         //led3呼吸灯
         if(tim9_count[1]>=2){
@@ -119,5 +122,49 @@ TIM1_BRK_TIM9_IRQHandler(void){
 
     }
 }
+
+
+
+/***********************************************
+*函数名    ：RTC_Alarm_IRQHandler
+*函数功能  ：rtc闹钟中断服务函数
+*函数参数  ：无
+*函数返回值：无
+*函数描述  ：
+***********************************************/
+void RTC_Alarm_IRQHandler(void)
+{
+	//判断闹钟触发中断信号
+	if(RTC_GetITStatus(RTC_IT_ALRA))
+	{
+		//清除标志位
+		RTC_ClearITPendingBit(RTC_IT_ALRA);
+		//紧急事件
+		
+	}
+	EXTI_ClearITPendingBit(EXTI_Line17);
+	
+	
+}
+/***********************************************
+*函数名    ：RTC_WKUP_IRQHandler
+*函数功能  ：rtc唤醒中断服务函数
+*函数参数  ：无
+*函数返回值：无
+*函数描述  ：
+***********************************************/
+void RTC_WKUP_IRQHandler(void)
+{
+	//判断唤醒触发中断信号
+	if(RTC_GetITStatus(RTC_IT_WUT))
+	{
+		//清除标志位
+		RTC_ClearITPendingBit(RTC_IT_WUT);
+		//紧急事件
+		
+	}
+}
+
+
 
 

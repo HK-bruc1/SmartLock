@@ -47,3 +47,4 @@
 .\objects\function.o: .\user\inc\voice.h
 .\objects\function.o: .\user\inc\iwdg.h
 .\objects\function.o: .\user\inc\bs8116.h
+.\objects\function.o: .\user\inc\rtc.h

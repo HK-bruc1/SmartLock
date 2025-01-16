@@ -24,6 +24,7 @@
 #include "voice.h"
 #include "iwdg.h"
 #include "bs8116.h"
+#include "rtc.h"
 
 
 
@@ -49,6 +50,9 @@ extern USART_t usart1;
 extern u16 tim9_count [10];
 extern char at24c02_rec_str[];
 extern u8 zk_flag;
+extern u16 page_mode;
+extern RTC_TimeTypeDef RTC_TimeStruct;
+extern RTC_DateTypeDef RTC_DateStruct;
 
 
 

@@ -48,7 +48,7 @@ u8 open_passward(u8 bs8116_key){
 
 
 
-    /*公用密码登录主界面,输入密码流程时保证只进入一次，避免无效操作导致CPU效率下降*/
+    /*公用密码登录以及主界面,输入密码流程时保证只进入一次，避免无效操作导致CPU效率下降*/
     if(pass_page_flag){
         //读第一次开机标志位
         at24c0x_read_byte(10,&open_val);
@@ -65,6 +65,13 @@ u8 open_passward(u8 bs8116_key){
         pass_page_flag = 0;
         //坐标归位，方便画实心圆
         x=45;
+
+
+        //每一次进入主界面都要立马显示时间
+        tim9_count[2] = 60000;
+        //打印指纹图片
+        LCD_dis_number_pic(96,120,"Z",LGRAY,1,gImage_systemPic);
+
     }
 
 
@@ -202,4 +209,38 @@ u8 open_passward(u8 bs8116_key){
             }
         }
     }
+}
+
+
+
+/***********************************************
+*函数名    :main_page
+*函数功能  :主界面函数
+*函数参数  :u8 key
+*函数返回值:无
+*函数描述  :page_mode = 1
+************************************************/
+void main_page(u8 key)
+{
+    //传递时间数据,因为多次调用避免反复定义
+    static u8 timer_buff[20];
+    //密码开锁
+    open_passward(key);
+
+
+
+    //主界面更新时间的时机,一分钟刷新一次,写在中断函数中，时间显示不受控制
+    if(tim9_count[2]>=60000){
+        tim9_count[2] = 0;
+        //获取日期和时间
+        RTC_GetTime(RTC_Format_BIN, &RTC_TimeStruct);
+        RTC_GetDate(RTC_Format_BIN, &RTC_DateStruct);
+        //显示时间，数据转换为字符串形式
+        sprintf((char *)timer_buff,"%02d:%02d",RTC_TimeStruct.RTC_Hours,RTC_TimeStruct.RTC_Minutes);
+        //使用48*48的
+        LCD_dis_number_pic(0,58,timer_buff,LGRAY,1,gImage_systemPic);
+    }
+
+
+    
 }

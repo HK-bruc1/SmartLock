@@ -572,6 +572,16 @@
               <FileType>5</FileType>
               <FilePath>.\user\inc\bs8116.h</FilePath>
             </File>
+            <File>
+              <FileName>rtc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\user\src\rtc.c</FilePath>
+            </File>
+            <File>
+              <FileName>rtc.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\user\inc\rtc.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
