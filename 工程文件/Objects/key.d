@@ -48,3 +48,4 @@
 .\objects\key.o: .\user\inc\iwdg.h
 .\objects\key.o: .\user\inc\bs8116.h
 .\objects\key.o: .\user\inc\rtc.h
+.\objects\key.o: .\user\inc\mg200.h

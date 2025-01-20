@@ -100,6 +100,8 @@ TIM1_BRK_TIM9_IRQHandler(void){
         tim9_count[1]++;
         //获取RTC时间的时机
         tim9_count[2]++;
+        //记录指纹采集时间用于超时检测
+        tim9_count[3]++;
 
 
         //led3呼吸灯
@@ -146,6 +148,8 @@ void RTC_Alarm_IRQHandler(void)
 	
 	
 }
+
+
 /***********************************************
 *函数名    ：RTC_WKUP_IRQHandler
 *函数功能  ：rtc唤醒中断服务函数
@@ -163,6 +167,38 @@ void RTC_WKUP_IRQHandler(void)
 		//紧急事件
 		
 	}
+}
+
+
+/***********************************************
+*函数名    ：USART6_IRQHandler
+*函数功能  ：接收来自指纹模块的数据
+*函数参数  ：无
+*函数返回值：无
+*函数描述  ：接收指纹模块传递过来的8个字节
+***********************************************/
+void USART6_IRQHandler(void){
+    static u8 i = 0;
+
+    //判断是接收完成中断信号触发
+    if(USART_GetITStatus(USART6, USART_IT_RXNE)){
+        //清除中断标志位
+        USART_ClearITPendingBit(USART6, USART_IT_RXNE);
+        //紧急事件(只接受不做处理),每次只能接收一个字节数据,数据包被处理了才再次接收，否则不接受
+        mg200_buff[i++] = USART_ReceiveData(USART6);
+    }
+
+    //连续的数据接收完了，判断是空闲中断
+    if(USART_GetITStatus(USART6,USART_IT_IDLE))
+    {
+        //请中断标志位
+        USART6->SR;
+        USART6->DR;
+        //紧急事件
+        i = 0;       //下一次接收从0号开始放
+        //上电好像会发数据啊，在发送命令给mg200时把mg200_rec_flag置为0
+        mg200_rec_flag = 1;     //接收指令包完成，可以解析指令包
+    }
 }
 
 

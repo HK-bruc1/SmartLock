@@ -48,3 +48,4 @@
 .\objects\lcd.o: .\user\inc\iwdg.h
 .\objects\lcd.o: .\user\inc\bs8116.h
 .\objects\lcd.o: .\user\inc\rtc.h
+.\objects\lcd.o: .\user\inc\mg200.h

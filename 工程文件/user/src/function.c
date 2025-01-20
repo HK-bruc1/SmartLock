@@ -21,6 +21,8 @@ void zk_update(void){
 
 
 
+
+
 /***********************************************
 *函数名    :open_passward
 *函数功能  :密码开锁
@@ -31,7 +33,7 @@ void zk_update(void){
 ************************************************/
 u8 open_passward(u8 bs8116_key){
     //密码解锁的状态返回值
-    u8 sta;
+    u8 sta = 0xff;
     //第一次开机标志位的值,由于只会获取一次但是会进入多次，需要保存下来，不然第二次就会出错
     static u8 open_val;
     //密码登录页面状态锁
@@ -209,6 +211,8 @@ u8 open_passward(u8 bs8116_key){
             }
         }
     }
+    //每次扫描无操作的话返回0xff
+    return sta;
 }
 
 
@@ -222,10 +226,18 @@ u8 open_passward(u8 bs8116_key){
 ************************************************/
 void main_page(u8 key)
 {
+    // 定义一个标志位来表示当前的颜色状态
+    static int color_flag = 0;
     //传递时间数据,因为多次调用避免反复定义
     static u8 timer_buff[20];
+    //密码开锁的状态
+    u8 sta;
     //密码开锁
-    open_passward(key);
+    sta = open_passward(key);
+    if(sta == 1){
+        //不在函数中层层调用进入下一个页面，在while中不断通过标志位轮询跳过对应界面即可
+        page_mode = 2;
+    }
 
 
 
@@ -241,6 +253,831 @@ void main_page(u8 key)
         LCD_dis_number_pic(0,58,timer_buff,LGRAY,1,gImage_systemPic);
     }
 
-
-    
 }
+
+
+/***********************************************
+*函数名    :admin_page
+*函数功能  :管理员界面函数
+*函数参数  :u8 key
+*函数返回值:无
+*函数描述  :page_mode = 2
+************************************************/
+void admin_page(u8 key)
+{
+    //状态锁
+    static u8 ad_flag = 1;
+
+    if(ad_flag==1){
+        //串口上位机
+		printf("\r\n管理员界面:\r\n");
+		printf("【1】密码管理\r\n");
+		printf("【2】指纹管理\r\n");
+		printf("【3】射频卡管理\r\n");
+		printf("【4】声音亮度调节\r\n");
+		printf("【5】恢复出厂设置\r\n");
+		printf("【#】退出管理界面\r\n");
+
+		//LCD屏幕显示
+		LCD_dis_pic(0,0,gImage_systemPic);
+
+		LCD_dis(40,48,"管理员界面",LIGHTBLUE,0,0xff,32);
+		LCD_dis(5,83,"【1】密码管理",LIGHTBLUE,0,0xff,16);
+		LCD_dis(5,108,"【2】指纹管理",LIGHTBLUE,0,0xff,16);
+		LCD_dis(5,133,"【3】射频卡管理",LIGHTBLUE,0,0xff,16);
+		LCD_dis(5,158,"【4】声音亮度调节",LIGHTBLUE,0,0xff,16);
+		LCD_dis(5,183,"【5】恢复出厂设置",LIGHTBLUE,0,0xff,16);
+		LCD_dis(5,208,"【#】退出管理员界面",LIGHTBLUE,0,0xff,16);
+
+        //锁住页面，进来后只刷新一次页面
+        ad_flag = 0;
+    }
+
+
+
+
+    //此页面的功能选择（高速轮询）
+    switch(key){
+        //本函数的状态锁解开，以便后续进来显示
+        case '1':page_mode = 3;ad_flag = 1;break;//进入到密码管理界面,状态锁解开
+        case '2':page_mode = 4;ad_flag = 1;break;//进入到指纹管理界面,状态锁解开
+        case '3':page_mode = 5;ad_flag = 1;break;//进入到射频卡管理界面,状态锁解开
+        case '4':page_mode = 6;ad_flag = 1;break;//进入到声音亮度调节界面,状态锁解开
+        case '5':page_mode = 7;ad_flag = 1;break;//进入到恢复出厂设置界面,状态锁解开
+        case '#':page_mode = 1;ad_flag = 1;break;//返回到密码登录主界面,状态锁解开
+    }
+}
+
+
+
+/***********************************************
+*函数名    :password_page
+*函数功能  :密码管理界面函数
+*函数参数  :u8 key
+*函数返回值:无
+*函数描述  :page_mode = 3
+************************************************/
+void password_page(u8 key)
+{
+    static u8 ad_flag = 1;
+    //一个key进来一次，x,y坐标需要保留记忆
+	static u8 x=45,y=95;
+	static u8 pass_i = 0;
+	static u8 pass_word_1[7] = {0};
+	static u8 pass_word_2[7] = {0};
+	
+	u8 i;
+
+
+	//执行一次    界面提示
+	if(ad_flag)
+	{
+        //防止密码中途输入未完成，需要清空，不然pass_i为上次的旧值,下标清空，数组旧值会被覆盖，不用担心
+        pass_i = 0;
+		//串口上位机显示
+		printf("\r\n修改管理员密码\r\n");
+		printf("【#】返回上一级菜单\r\n");
+		printf("【*】返回主界面\r\n");
+		
+		
+		//LCD屏幕显示
+		LCD_dis_pic(0,0,gImage_systemPic);
+		LCD_dis(9,48,"修改管理员密码",LIGHTBLUE,0,0xff,32);
+		LCD_dis(60,90,"第一次输入密码",LIGHTBLUE,0,0xff,16);
+        //空心圆跟随
+		x = 45;
+		for(i = 0;i < 6;i++)
+		{
+			LCD_Ring(x,120,6,LGRAY);
+			x += 30;
+		}
+
+		LCD_dis(60,140,"第二次输入密码",LIGHTBLUE,0,0xff,16);
+		x = 45;
+		for(i = 0;i < 6;i++)
+		{
+			LCD_Ring(x,170,6,LGRAY);
+			x += 30;
+		}
+		x = 45;
+
+        //左右两个角落显示
+		LCD_dis(5,220,"主界面【*】",LIGHTBLUE,0,0xff,16);
+		LCD_dis(145,220,"【#】上一级",LIGHTBLUE,0,0xff,16);
+		
+		ad_flag = 0;
+	}
+
+
+    //修改密码功能程序
+	if(key != '*' && key != '#' && key != 0xff)
+	{
+		
+		//第一次输入密码
+		if(pass_i<6)
+		{
+			pass_word_1[pass_i] = key;
+			pass_i++;
+			LCD_shiRing(x,120,8,LGRAY);
+			x+=30;
+			
+			//第一次输入完6个密码清除屏幕密码取余和提示语
+			if(pass_i == 6)
+			{
+				x = 45;
+				voice(0x0e);
+			}
+		}
+		
+		//第二次输入密码
+		else if(pass_i >= 6 )
+		{
+			pass_word_2[pass_i-6] = key;
+			pass_i++;
+			LCD_shiRing(x,170,8,LGRAY);
+			x+=30;
+			//第二次输入完6个密码  对比密码
+			if(pass_i == 12)
+			{
+				//两次密码一致
+				if(strcmp((char *)pass_word_1,(char *)pass_word_2) == 0)
+				{
+					//将密码存储到AT24的11号地址
+					AT24C0x_write_bytes(11,sizeof(pass_word_1),pass_word_1,AT24C04);
+					//回到登录界面
+					pass_i = 0;
+					page_mode = 1;
+					ad_flag = 1;
+				}
+				//两次密码不一致
+				else
+				{
+					voice(0x10);
+					pass_i = 0;
+					ad_flag = 1;
+				}
+			}
+			
+		}	
+	}
+
+
+    switch(key)
+	{
+		case '#': page_mode = 2; ad_flag = 1;break;    //返回上一级菜单
+		case '*': page_mode = 1; ad_flag = 1;break;    //返回主界面
+		
+	}
+}
+
+
+
+/***********************************************
+*函数名    :mg200_page
+*函数功能  :指纹管理界面函数
+*函数参数  :u8 key
+*函数返回值:无
+*函数描述  :page_mode = 4
+************************************************/
+void mg200_page(u8 key)
+{
+	static u8 ad_flag = 1; 
+	
+	
+	//执行一次
+	if(ad_flag)
+	{
+		//串口上位机显示
+		printf("\r\n指纹管理界面:\r\n");
+		printf("【1】注册指纹\r\n");
+		printf("【2】删除指定ID指纹\r\n");
+		printf("【3】删除所有指纹\r\n");
+		printf("【4】识别删除指纹\r\n");
+		printf("【#】回到上一级菜单\r\n");
+		printf("【*】回到主界面\r\n");
+		
+		
+		//LCD屏幕显示
+		LCD_dis_pic(0,0,gImage_systemPic);
+		LCD_dis(26,48,"指纹管理界面",LIGHTBLUE,0,0xff,32);
+		LCD_dis(5,83,"【1】注册指纹",LIGHTBLUE,0,0xff,16);
+		LCD_dis(5,108,"【2】删除指定ID指纹",LIGHTBLUE,0,0xff,16);
+		LCD_dis(5,133,"【3】删除所有指纹",LIGHTBLUE,0,0xff,16);
+		LCD_dis(5,158,"【4】识别删除指纹",LIGHTBLUE,0,0xff,16);	
+		LCD_dis(5,220,"主界面【*】",LIGHTBLUE,0,0xff,16);
+		LCD_dis(145,220,"【#】上一级",LIGHTBLUE,0,0xff,16);
+		
+
+		
+	
+		ad_flag = 0;
+	}
+	
+	
+	switch(key)
+	{
+		case '1':page_mode = 41;ad_flag=1;break;
+        case '2':page_mode = 42;ad_flag=1;break;
+        case '3':page_mode = 43;ad_flag=1;break;
+        case '4':page_mode = 44;ad_flag=1;break;
+		case '#':page_mode = 2;ad_flag=1;break;
+		case '*':page_mode = 1;ad_flag=1;break;
+	}
+}
+
+
+/***********************************************
+*函数名    :Enroll_user_page
+*函数功能  :注册用户指纹界面函数
+*函数参数  :u8 key
+*函数返回值:无
+*函数描述  :page_mode = 41
+*指纹模块可以保存指纹，对外不可见。拿不到已经存入的指纹ID列表，只好通过AT24C02保存已使用ID列表信息，通过此列表管理模块中保存的指纹
+************************************************/
+void Enroll_user_page(u8 key)
+{
+	static u8 ad_flag = 1;
+	//指纹注册的操作状态
+	u8 mg200_register_sta = 1;
+	
+	//执行一次
+	if(ad_flag)
+	{
+		//语音播报
+		voice(REGISTER_FINGER);
+		//串口上位机显示
+		printf("\r\n注册用户指纹界面:\r\n");
+		printf("【#】回到上一级菜单\r\n");
+		printf("【*】回到主界面\r\n");
+		//LCD屏幕显示
+		//为什么很丝滑？因为每一个界面的背景色是一样的，刷新时看不出明显的整块屏幕的切换感，因为不是整块屏幕的颜色都改变了
+		LCD_dis_pic(0,0,gImage_systemPic);
+		LCD_dis(24,48,"注册用户指纹",LIGHTBLUE,0,0xff,32);
+		LCD_dis(0,220,"【*】主界面",LIGHTBLUE,0,0xff,16);
+		LCD_dis(150,220,"上一级【#】",LIGHTBLUE,0,0xff,16);
+		LCD_dis_number_pic(96,120,"Z",LGRAY,1,gImage_systemPic);
+	
+		ad_flag = 0;
+	}
+
+	//到这个界面后不断调用指纹识别函数
+	//到指定次数后自动注册
+	mg200_register_sta = mg200_register(99);
+	if(mg200_register_sta == 0){
+		//注册成功
+		voice(SETTING_SUCCESS);
+		//返回上一级
+		page_mode = 4;
+		ad_flag=1;
+	}
+
+	
+	
+	switch(key)
+	{
+		case '#':page_mode = 4;ad_flag=1;break;
+		case '*':page_mode = 1;ad_flag=1;break;
+	}
+
+	
+}
+
+
+
+
+/***********************************************
+*函数名    :erase_user_one_page
+*函数功能  :删除指定ID指纹界面函数
+*函数参数  :u8 key
+*函数返回值:无
+*函数描述  :page_mode = 42
+************************************************/
+void erase_user_one_page(u8 key)
+{
+	static u8 ad_flag = 1;
+	
+	
+	//执行一次
+	if(ad_flag)
+	{
+		//串口上位机显示
+		printf("\r\n删除指定指纹界面:\r\n");
+		printf("请选择指纹ID\r\n");
+		printf("【#】回到上一级菜单\r\n");
+		printf("【*】回到主界面\r\n");
+
+		//LCD屏幕显示
+		LCD_dis_pic(0,0,gImage_systemPic);
+		LCD_dis(24,48,"删除指定指纹",LIGHTBLUE,0,0xff,32);
+		LCD_dis(0,220,"【*】主界面",LIGHTBLUE,0,0xff,16);
+		LCD_dis(150,220,"上一级【#】",LIGHTBLUE,0,0xff,16);
+		
+		
+		ad_flag = 0;
+	}
+	
+	switch(key)
+	{
+		case '#':page_mode = 4;ad_flag=1;break;
+		case '*':page_mode = 1;ad_flag=1;break;
+	}
+}
+
+
+
+
+
+/***********************************************
+*函数名    :erase_user_all_page
+*函数功能  :删除所有指纹界面函数
+*函数参数  :u8 key
+*函数返回值:无
+*函数描述  :page_mode = 43
+************************************************/
+void erase_user_all_page(u8 key)
+{
+	static u8 ad_flag = 1;
+
+	//执行一次
+	if(ad_flag)
+	{
+		//串口上位机显示
+		printf("\r\n删除所有指纹？:\r\n");
+		printf("【*】确认\r\n");
+		printf("#】取消\r\n");
+		
+		
+		//LCD屏幕显示
+		LCD_dis_pic(0,0,gImage_systemPic);
+		LCD_dis(24,48,"删除所有指纹",LIGHTBLUE,0,0xff,32);
+		LCD_dis(56,85,"确认删除",LIGHTBLUE,0,0xff,32);
+		LCD_dis_number_pic(96,126,"?",RED,1,gImage_systemPic);
+		LCD_dis(0,220,"确认(*)",LIGHTBLUE,0,0xff,16);
+		LCD_dis(180,220,"取消(#)",LIGHTBLUE,0,0xff,16);
+		
+		ad_flag = 0;
+	}
+	
+
+	
+	if(key == '*')     //确认删除 后 回到上级菜单
+	{
+		//删除的动作
+		
+		//回上级菜单
+		page_mode = 4;
+		ad_flag=1;
+	}
+	
+	else if(key == '#')   //取消会到上级菜单
+	{
+		page_mode = 4;
+		ad_flag=1;
+	}
+
+}
+
+
+
+
+/***********************************************
+*函数名    :erase_user_match_page
+*函数功能  :识别删除指纹界面函数
+*函数参数  :u8 key
+*函数返回值:无
+*函数描述  :page_mode = 44
+************************************************/
+void erase_user_match_page(u8 key)
+{
+	static u8 ad_flag = 1;
+	
+	//执行一次
+	if(ad_flag == 1)
+	{
+		//串口上位机显示
+		printf("\r\n识别删除指纹界面\r\n");
+		printf("识别指纹\r\n");
+		printf("【*】确认\r\n");
+		printf("【#】取消\r\n");
+		
+		//LCD屏幕显示
+		LCD_dis_pic(0,0,gImage_systemPic);//设置图片为背景
+		LCD_dis(25,48,(u8 *)"识别删除指纹",LIGHTBLUE,0,0xff,32);
+		LCD_dis_number_pic(96,140,(u8 *)"Z",LGRAY,1,gImage_systemPic);
+		LCD_dis(160,220,"【#】返回",LIGHTBLUE,0,0xff,16);
+		LCD_dis(0,220,"确认【*】",LIGHTBLUE,0,0xff,16);
+		
+		
+		ad_flag = 0;
+	}
+	
+	
+	
+	
+	/*按键确认*/
+	if(key == '*' )     //确认删除 后 回到上级菜单
+	{
+		
+		//回上级菜单
+		page_mode = 4;
+		ad_flag=1;
+	}
+	
+	
+	else if(key == '#')   //取消会到上级菜单
+	{
+		page_mode = 4;
+		ad_flag=1;
+	}
+}
+
+
+
+/***********************************************
+*函数名    :rfid_page
+*函数功能  :射频卡管理界面函数
+*函数参数  :u8 key
+*函数返回值:无
+*函数描述  :page_mode = 5
+************************************************/
+void rfid_page(u8 key)
+{
+	static u8 ad_flag = 1;
+	
+	//执行一次
+	if(ad_flag)
+	{
+		//串口上位机显示
+		printf("\r\n卡片管理界面：\r\n");
+		printf("【1】注册卡片\r\n");
+		printf("【2】删除指定ID卡片\r\n");
+		printf("【3】删除所有卡片\r\n");
+		printf("【4】识别删除卡片\r\n");
+		printf("【#】回到上一级菜单\r\n");
+		printf("【*】回到主界面\r\n");
+		
+		//LCD屏幕界面
+		LCD_dis_pic(0,0,gImage_systemPic);
+		LCD_dis(26,48,"射频卡管理",LIGHTBLUE,0,0xff,32);
+		LCD_dis(5,83,"【1】注册卡片",LIGHTBLUE,0,0xff,16);
+		LCD_dis(5,108,"【2】删除指定卡片",LIGHTBLUE,0,0xff,16);
+		LCD_dis(5,133,"【3】删除所有卡片",LIGHTBLUE,0,0xff,16);
+		LCD_dis(5,158,"【4】识别删除卡片",LIGHTBLUE,0,0xff,16);	
+		LCD_dis(5,220,"主界面【*】",LIGHTBLUE,0,0xff,16);
+		LCD_dis(145,220,"【#】上一级",LIGHTBLUE,0,0xff,16);
+		
+		ad_flag = 0;
+	}
+	
+	
+	switch(key)
+	{   case '1':page_mode = 51;ad_flag=1;break;
+        case '2':page_mode = 52;ad_flag=1;break;
+        case '3':page_mode = 53;ad_flag=1;break;
+        case '4':page_mode = 54;ad_flag=1;break;
+		case '#':page_mode = 2;ad_flag=1;break;
+		case '*':page_mode = 1;ad_flag=1;break;	
+	}
+}
+
+
+
+
+/***********************************************
+*函数名    :picc_user_page
+*函数功能  :注册用户卡片界面函数
+*函数参数  :u8 key
+*函数返回值:无
+*函数描述  :page_mode = 51
+************************************************/
+void picc_user_page(u8 key)
+{
+	
+	static u8 ad_flag = 1;
+	
+	//执行一次
+	if(ad_flag)
+	{
+		//串口上位机显示
+		printf("\r\n注册用户卡片界面：\r\n");
+		printf("【#】回到上一级菜单\r\n");
+		printf("【*】回到主界面\r\n");
+		
+		
+		//LCD屏幕显示
+		LCD_dis_pic(0,0,gImage_systemPic);
+		LCD_dis(24,48,"注册用户卡片",LIGHTBLUE,0,0xff,32);
+		LCD_dis_number_pic(50,120,"P",LGRAY,1,gImage_systemPic);
+		LCD_dis_number_pic(130,120,"Q",LGRAY,1,gImage_systemPic);
+		LCD_dis(0,220,"【*】主界面",LIGHTBLUE,0,0xff,16);
+		LCD_dis(150,220,"上一级【#】",LIGHTBLUE,0,0xff,16);
+		
+		ad_flag = 0;
+	}
+	
+	
+
+	
+	
+	switch(key)
+	{
+		case '#':page_mode = 5;ad_flag=1;break;
+		case '*':page_mode = 1;ad_flag=1;break;
+	}
+}
+
+
+
+/***********************************************
+*函数名    :erase_user_picc_page
+*函数功能  :删除指定卡片界面函数
+*函数参数  :u8 key
+*函数返回值:无
+*函数描述  :page_mode = 52
+************************************************/
+void erase_user_picc_page(u8 key)
+{
+	static u8 ad_flag = 1;
+	//执行一次
+	if(ad_flag)
+	{
+		//串口上位机显示
+		printf("\r\n删除指定卡片界面:\r\n");
+		printf("请选择卡片\r\n");
+		printf("【#】回到上一级菜单\r\n");
+		printf("【*】回到主界面\r\n");
+
+		//LCD屏幕显示
+		LCD_dis_pic(0,0,gImage_systemPic);
+		LCD_dis(24,48,"删除指定卡片",LIGHTBLUE,0,0xff,32);
+		LCD_dis(0,220,"【*】主界面",LIGHTBLUE,0,0xff,16);
+		LCD_dis(150,220,"上一级【#】",LIGHTBLUE,0,0xff,16);
+		
+		
+
+		ad_flag = 0;
+	}
+	
+	
+	
+	switch(key)
+	{
+		case '#':page_mode = 5;ad_flag=1;break;
+		case '*':page_mode = 1;ad_flag=1;break;
+	}
+	
+}
+
+
+
+/***********************************************
+*函数名    :erase_picc_all_page
+*函数功能  :删除所有卡片界面函数
+*函数参数  :u8 key
+*函数返回值:无
+*函数描述  :page_mode = 53
+************************************************/
+void erase_picc_all_page(u8 key)
+{
+	static u8 ad_flag = 1;
+	//执行一次
+	if(ad_flag)
+	{
+		//串口上位机显示
+		printf("\r\n删除所有卡片?:\r\n");
+		printf("【*】确认\r\n");
+		printf("【#】取消\r\n");
+		
+		
+		//LCD屏幕显示
+		LCD_dis_pic(0,0,gImage_systemPic);
+		LCD_dis(24,48,"删除所有卡片",LIGHTBLUE,0,0xff,32);
+		LCD_dis(56,85,"确认删除",LIGHTBLUE,0,0xff,16);
+		LCD_dis_number_pic(96,126,"?",RED,1,gImage_systemPic);
+		LCD_dis(0,220,"确认(*)",LIGHTBLUE,0,0xff,16);
+		LCD_dis(180,220,"取消(#)",LIGHTBLUE,0,0xff,16);
+		
+		ad_flag = 0;
+	}
+	
+	
+	
+	
+	if(key == '*')     //确认删除 后 回到上级菜单
+	{
+		//删除的动作
+
+		
+		//回上级菜单
+		page_mode = 5;
+		ad_flag=1;
+	}
+	
+	else if(key == '#')   //取消会到上级菜单
+	{
+		page_mode = 5;
+		ad_flag=1;
+	}
+
+}
+
+
+/***********************************************
+*函数名    :erase_picc_match_page
+*函数功能  :识别删除卡片界面函数
+*函数参数  :u8 key
+*函数返回值:无
+*函数描述  :page_mode = 54
+************************************************/
+void erase_picc_match_page(u8 key)
+{
+	static u8 ad_flag = 1;
+	
+	//执行一次
+	if(ad_flag)
+	{
+		//串口上位机显示
+		printf("\r\n识别删除卡片界面\r\n");
+		printf("识别卡片\r\n");
+		printf("【#】取消\r\n");
+		
+		//LCD屏幕显示
+		LCD_dis_pic(0,0,gImage_systemPic);//设置图片为背景
+		LCD_dis(25,48,(u8 *)"识别删除卡片",LIGHTBLUE,0,0xff,32);
+		LCD_dis_number_pic(50,120,"P",LGRAY,1,gImage_systemPic);
+		LCD_dis_number_pic(130,120,"Q",LGRAY,1,gImage_systemPic);
+		LCD_dis(160,220,(u8 *)"【#】返回",LIGHTBLUE,0,0xff,16);
+		
+		
+		ad_flag = 0;
+	}
+	
+
+	
+	
+	else if(key == '#')   //取消会到上级菜单
+	{
+		page_mode = 5;
+		ad_flag=1;
+	}
+
+	
+}
+
+
+
+/***********************************************
+*函数名    :voice_light_page
+*函数功能  :声音和屏幕亮度管理界面函数
+*函数参数  :u8 key
+*函数返回值:无
+*函数描述  :page_mode = 6
+************************************************/
+void voice_light_page(u8 key)
+{
+	static u8 ad_flag = 1;
+	
+	
+	//执行一次
+	if(ad_flag)
+	{
+		//串口上位机显示
+		printf("\r\n声音亮度调节界面:\r\n");
+		printf("【1】音量加\r\n");
+		printf("【2】音量减\r\n");
+		printf("【3】静音模式\r\n");
+		printf("【4】屏幕亮度加\r\n");
+		printf("【5】屏幕亮度减\r\n");
+		printf("【#】回到上一级菜单\r\n");
+		printf("【*】回到主界面\r\n");
+		
+		//LCD屏幕显示
+		LCD_dis_pic(0,0,gImage_systemPic);
+		LCD_dis(24,48,"声音亮度调节",LIGHTBLUE,0,0xff,32);
+		LCD_dis_number_pic(5,80,"S",LGRAY,1,gImage_systemPic);
+		LCD_dis_number_pic(5,140,"L",LGRAY,1,gImage_systemPic);
+		
+		LCD_dis(0,220,"【*】主界面",LIGHTBLUE,0,0xff,16);
+		LCD_dis(150,220,"上一级【#】",LIGHTBLUE,0,0xff,16);
+		
+		ad_flag = 0;
+	}
+	
+	
+	//返回上一级菜单
+	if(key=='#')
+	{
+		page_mode = 2;       //返回管理员界面
+		ad_flag = 1;
+	}
+	//返回主界面
+	else if(key=='*')
+	{
+		page_mode = 1;       //返回主界面
+		ad_flag = 1;
+	}
+	
+	//声音加
+	else if(key=='1')
+	{
+		
+	}
+	//声音减
+	else if(key=='2')
+	{
+			
+	}
+	//静音
+	else if(key=='3')
+	{
+		
+	}
+	
+	
+	//加亮度
+	else if(key == '4')
+	{
+		
+	}
+
+	//减亮度
+	else if(key == '5')
+	{
+		
+	}
+}
+
+/***********************************************
+*函数名    :factory_reset_page
+*函数功能  :恢复出厂设置界面函数
+*函数参数  :u8 key
+*函数返回值:无
+*函数描述  :page_mode = 7
+************************************************/
+void factory_reset_page(u8 key)
+{
+	static u8 ad_flag = 1;
+	
+	//执行一次
+	if(ad_flag)
+	{
+		//串口上位机显示
+		printf("\r\n恢复出厂设置界面:\r\n");
+		printf("【*】确认\r\n");
+		printf("【#】取消\r\n");
+		
+		//LCD屏幕显示
+		LCD_dis_pic(0,0,gImage_systemPic);
+		LCD_dis(24,48,"恢复出厂设置",LIGHTBLUE,0,0xff,32);
+		LCD_dis(56,85,"确认恢复？",LIGHTBLUE,0,0xff,16);
+		LCD_dis_number_pic(96,126,"H",RED,1,gImage_systemPic);
+		LCD_dis(0,210,"确认(*)",LIGHTBLUE,0,0xff,16);
+		LCD_dis(180,210,"取消(#)",LIGHTBLUE,0,0xff,16);
+		
+		
+		ad_flag = 0;
+	}
+	
+	//确认
+	if(key=='*')
+	{
+		page_mode = 1;       //回主界面
+		ad_flag = 1;
+	}
+	//返回
+	else if(key=='#')
+	{
+		page_mode = 2;       //上一级菜单
+		ad_flag = 1;
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

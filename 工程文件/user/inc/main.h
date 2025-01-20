@@ -25,13 +25,15 @@
 #include "iwdg.h"
 #include "bs8116.h"
 #include "rtc.h"
+#include "mg200.h"
 
 
 
 //宏定义,字库擦除起始地址
 #define ZK_ADDR 0x020000
-//第一次开机标志位的值
+//第一次开机标志位的值（其他第一次标志位也行，只要存在不同地址就行）
 #define OPEN_FLAG 0xff
+
 
 
 
@@ -53,6 +55,8 @@ extern u8 zk_flag;
 extern u16 page_mode;
 extern RTC_TimeTypeDef RTC_TimeStruct;
 extern RTC_DateTypeDef RTC_DateStruct;
+extern volatile u8 mg200_buff[8];
+extern volatile u8 mg200_rec_flag;
 
 
 

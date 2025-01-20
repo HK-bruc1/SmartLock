@@ -23,6 +23,13 @@ RTC_TimeTypeDef RTC_TimeStruct;
 RTC_DateTypeDef RTC_DateStruct;
 
 
+//用于串口6接收指纹模块的数据,数据包共8个字节
+volatile u8 mg200_buff[8];
+//mg200数据包接收完成标志
+volatile u8 mg200_rec_flag = 0; 
+//mg200的注册ID，最多存在9个用户指纹
+u8 mg200_id[9];
+
 
 
 int main (void){
@@ -53,6 +60,8 @@ int main (void){
 	door_init();
 	//RTC初始化
 	rtc_init();
+	//指纹模块初始化
+	mg200_init();
 
 	//定时器9的定时中断初始化,1ms进入一次中断
 	tim9_it_ms(1);
@@ -72,9 +81,24 @@ int main (void){
 		iwdg_feed();
 		key_val = BS8116_Key_scan();
 		
+		
 		//由界面编号决定按键值给谁使用，因为多个界面需要按键值操作
 		switch(page_mode){
 			case 1:main_page(key_val);break;
+			case 2:admin_page(key_val);break;
+			case 3:password_page(key_val);break;
+			case 4:mg200_page(key_val);break;
+			case 41:Enroll_user_page(key_val);break;
+			case 42:erase_user_one_page(key_val);break;
+			case 43:erase_user_all_page(key_val);break;
+			case 44:erase_user_match_page(key_val);break;
+			case 5:rfid_page(key_val);break;
+			case 51:picc_user_page(key_val);break;
+			case 52:erase_user_picc_page(key_val);break;
+			case 53:erase_picc_all_page(key_val);break;
+			case 54:erase_picc_match_page(key_val);break;
+			case 6:voice_light_page(key_val);break;
+			case 7:factory_reset_page(key_val);break;
 
 		}
 		

@@ -48,3 +48,4 @@
 .\objects\w25q64.o: .\user\inc\iwdg.h
 .\objects\w25q64.o: .\user\inc\bs8116.h
 .\objects\w25q64.o: .\user\inc\rtc.h
+.\objects\w25q64.o: .\user\inc\mg200.h

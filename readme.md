@@ -364,7 +364,38 @@ IWDG->RLR = 250;
 IWDG->KR = 0xAAAA;
 ```
 
+## 两种串口发送判断的标志的区别
 
+标志位区别:
+
+- `usart6_send_byte`: 使用 TC (Transmission Complete) 标志位
+- `USART6_SendChar`: 使用 TXE (Transmit Data Register Empty) 标志位
+
+检查时机:
+
+- TC: 检查整个数据帧(包括起始位、数据位、停止位)是否完全发送完成
+- TXE: 只检查发送数据寄存器是否为空,可以写入新数据
+
+各自优势:
+
+使用TC标志 (`usart6_send_byte`):
+
+- 可靠性更高,确保数据完全发送
+- 适合在以下场景使用:
+  - UART关闭前的最后发送
+  - 更改波特率前
+  - 进入低功耗模式前
+  - 对时序要求严格的场合
+
+使用TXE标志 (`USART6_SendChar`):
+
+- 发送效率更高,尤其是连续发送时
+- 适合在以下场景使用:
+  - 普通数据传输
+  - 需要高速连续发送
+  - 对实时性要求高的场合
+
+在实际应用中,如无特殊要求,推荐使用TXE标志的方式,可以获得更好的传输效率。
 
 ## 其他
 
@@ -464,3 +495,29 @@ GPIO_InitStruct.GPIO_Pin = GPIO_Pin_6;
 GPIO_InitStruct.GPIO_Pin = GPIO_Pin_7;
 GPIO_Init(GPIOA, &GPIO_InitStruct); // 只配置Pin7
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+指纹模块函数封装
+
+```
+GPIO口初始化
+usart6串口初始化
+接收中断配置
+串口发送一个指令函数
+解析收到的数据包函数
+
+```
+

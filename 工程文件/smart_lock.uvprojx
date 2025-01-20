@@ -582,6 +582,16 @@
               <FileType>5</FileType>
               <FilePath>.\user\inc\rtc.h</FilePath>
             </File>
+            <File>
+              <FileName>mg200.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\user\src\mg200.c</FilePath>
+            </File>
+            <File>
+              <FileName>mg200.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\user\inc\mg200.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -48,3 +48,4 @@
 .\objects\voice.o: .\user\inc\iwdg.h
 .\objects\voice.o: .\user\inc\bs8116.h
 .\objects\voice.o: .\user\inc\rtc.h
+.\objects\voice.o: .\user\inc\mg200.h

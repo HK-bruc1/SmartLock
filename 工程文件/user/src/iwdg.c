@@ -19,7 +19,7 @@ void iwdg_init(void)
     //启动看门狗
     IWDG->KR = 0xCCCC;
     
-    printf("看门狗启动\r\n");
+    //printf("看门狗启动\r\n");
 }
 
 

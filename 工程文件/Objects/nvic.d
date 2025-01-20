@@ -48,3 +48,4 @@
 .\objects\nvic.o: .\user\inc\iwdg.h
 .\objects\nvic.o: .\user\inc\bs8116.h
 .\objects\nvic.o: .\user\inc\rtc.h
+.\objects\nvic.o: .\user\inc\mg200.h

@@ -48,3 +48,4 @@
 .\objects\main.o: .\user\inc\iwdg.h
 .\objects\main.o: .\user\inc\bs8116.h
 .\objects\main.o: .\user\inc\rtc.h
+.\objects\main.o: .\user\inc\mg200.h
