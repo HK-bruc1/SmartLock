@@ -168,7 +168,7 @@ u8 mg200_register(u8 ID){
         //第一次采集
         if(MG200_DETECT_READ() && touch_statu==1)
         {
-            //感应上电
+            //感应上电，打开灯光
             MG200_PWR_SET();
             //等待感应上电完成
             tim5Delay_Ms(30);
@@ -296,13 +296,49 @@ u8 mg200_register(u8 ID){
                     case 0x94: printf("指纹提取次数 < 3\r\n");break;
                 }
             }
-            //无论操作是否成功，都关电
+            //无论操作是否成功，都关电，一次完成的指纹采集流程之后才关灯，任务完成才进入低功耗模式
             MG200_PWR_RESET() ;
-            
-        }   return resu;
-        
+            return resu;
+        }    
     //用户进入到指纹注册界面但是没有按下指纹或者没有采集超过三次
     return 0xfb;
+}
+
+/****************************************************
+*函数名    ：erase_all
+*函数功能  ：删除所有指纹ID
+*函数参数  ：无
+*函数返回值：u8 
+*函数描述  ：
+*****************************************************/
+u8 erase_all(void)
+{
+	u8 rec_parameter,ret = 0xfe;
+	
+	MG200_PWR_SET();
+	tim5Delay_Ms(30);
+	mg200_send_command(0x54,0);
+    //等待并解析响应的数据包
+	if(mg200_read_cmd(0x54,&rec_parameter,&ret))
+	{
+        //非零返回值代表数据包有错误
+		printf("通信失败,接收数据包错误\r\n");
+		MG200_PWR_RESET();
+		return 0xff;
+	}
+	
+    //数据包没有错误的情况下，判断返回的操作结果
+	switch(ret)
+	{
+		case 0:printf("所有指纹删除成功\r\n");break;
+		case 0x90:printf("未注册的用户\r\n");break;
+		default:printf("删除失败\r\n");break;
+	}
+		
+	//断电进入低功耗模式
+	MG200_PWR_RESET();
+	
+	return ret;
 }
 
 

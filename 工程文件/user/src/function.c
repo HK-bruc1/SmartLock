@@ -71,8 +71,11 @@ u8 open_passward(u8 bs8116_key){
 
         //每一次进入主界面都要立马显示时间
         tim9_count[2] = 60000;
-        //打印指纹图片
-        LCD_dis_number_pic(96,120,"Z",LGRAY,1,gImage_systemPic);
+		//不是第一次开机才打印指纹，第一次开机只能设置初始密码
+		if(open_val == OPEN_FLAG){
+			//打印指纹图片
+        	LCD_dis_number_pic(96,120,"Z",LGRAY,1,gImage_systemPic);
+		}
 
     }
 
@@ -83,7 +86,7 @@ u8 open_passward(u8 bs8116_key){
     if(open_val != OPEN_FLAG){
         //输入第一次初始密码的语音播报
         if(pass_flag==1){
-            LCD_dis(70,130,"请设置新密码",RED,0,RED,16);
+            LCD_dis(70,130,"请设置新密码",LIGHTBLUE,0,0xff,16);
             voice(INPUT_NEW_PASSWORD);
             //锁住设置密码的语音播报，防止反复播报
             pass_flag=0;
@@ -115,7 +118,7 @@ u8 open_passward(u8 bs8116_key){
 
                 //在显示之前把文字需要的背景先清除干净：把文字所在的区域背景像素值全部改成对应图片颜色值
                 LCD_xy_clear(70,130,100,16,0xffff,1,gImage_systemPic);
-                LCD_dis(70,130,"请再次输入新密码",RED,0,RED,16);
+                LCD_dis(70,130,"请再次输入新密码",LIGHTBLUE,0,0xff,16);
                 voice(INPUT_NEW_PASSWORD_AGAIN);
                 //圆心归位，以便下一次使用
                 x=45;
@@ -442,6 +445,8 @@ void password_page(u8 key)
 void mg200_page(u8 key)
 {
 	static u8 ad_flag = 1; 
+	//首次进入指纹管理界面标志
+	u8 open_flag;
 	
 	
 	//执行一次
@@ -467,6 +472,19 @@ void mg200_page(u8 key)
 		LCD_dis(5,220,"主界面【*】",LIGHTBLUE,0,0xff,16);
 		LCD_dis(145,220,"【#】上一级",LIGHTBLUE,0,0xff,16);
 		
+
+		//检测是否为第一次进入指纹管理（把初始指纹ID数据先写入存储芯片中）
+		at24c0x_read_byte(20,&open_flag);
+		if(open_flag != OPEN_FLAG)
+		{
+			//清除指纹模块(第一次进入指纹管理，说明之前的指纹都需要擦除)
+			erase_all();
+			//把原始数组存储到AT24中,使用0xff作为初始无效值
+			memset(mg200_id,0xff,sizeof(mg200_id));
+			AT24C0x_write_bytes(21,sizeof(mg200_id),mg200_id,AT24C04);
+			//把第一次检测标志位写入到AT(板子上是AT24C04)
+			at24c0x_write_byte(20,OPEN_FLAG);
+		}
 
 		
 	
@@ -498,7 +516,12 @@ void Enroll_user_page(u8 key)
 {
 	static u8 ad_flag = 1;
 	//指纹注册的操作状态
-	u8 mg200_register_sta = 1;
+	static mg200_register_sta = 1;
+	//显示坐标
+	static u16 x = 30;
+	u8 mg200_i;
+	//要录入的指纹ID
+	static u8 mg200_ID;
 	
 	//执行一次
 	if(ad_flag)
@@ -516,20 +539,67 @@ void Enroll_user_page(u8 key)
 		LCD_dis(0,220,"【*】主界面",LIGHTBLUE,0,0xff,16);
 		LCD_dis(150,220,"上一级【#】",LIGHTBLUE,0,0xff,16);
 		LCD_dis_number_pic(96,120,"Z",LGRAY,1,gImage_systemPic);
-	
+
+
+		//从AT24中读出指纹ID数据到数组中
+		AT24C0x_read_bytes(21,sizeof(mg200_id),mg200_id);
+		//把现有ID打印到屏幕上
+		x = 30;
+		//把存入的9个指纹ID拿出来
+		for(mg200_i=0;mg200_i<9;mg200_i++)
+		{
+			//筛选显示有效指纹ID
+			if(mg200_id[mg200_i]!= 0xff)
+			{
+				printf("%u  ",mg200_id[mg200_i]);
+				LCD_dis_ch(x,80,mg200_id[mg200_i]+48,LIGHTBLUE,0,0xff,32);
+				x+=20;
+			}
+		}
+
+		//遍历数组找到事0xff的元素的下标，作为下一个录入指纹的数组存储下标
+		for(mg200_i=0;mg200_i<9;mg200_i++)
+		{
+			if(mg200_id[mg200_i]== 0xff)
+			{
+				break;
+			}
+		}
+		//注册ID就是下标+1 0xff表示无效值，注册ID限制在1~9
+		mg200_ID = mg200_i+1;
+		//9个元素遍历完，那么mg200_i会等于9，mg200_i+1=10
+		if(mg200_ID==10)
+		{
+			printf("注册指纹数量以达上限\r\n");
+		}
+
 		ad_flag = 0;
 	}
 
-	//到这个界面后不断调用指纹识别函数
-	//到指定次数后自动注册
-	mg200_register_sta = mg200_register(99);
-	if(mg200_register_sta == 0){
+	//ID符合要求就可以开始扫描注册函数
+	if(mg200_ID<10)
+	{
+		//返回0xfb  用户进入到指纹注册界面但是没有按下指纹或者没有采集超过三次
+		mg200_register_sta = mg200_register(mg200_ID);
 		//注册成功
-		voice(SETTING_SUCCESS);
-		//返回上一级
-		page_mode = 4;
-		ad_flag=1;
+		if(mg200_register_sta == 0x00)
+		{
+			//把注册的ID写到数组中，ID和下标相差1
+			mg200_id[mg200_ID-1] = mg200_ID;
+			//把数组写入AT24
+			AT24C0x_write_bytes(21,sizeof(mg200_id),mg200_id,AT24C04);
+			printf("已注册%d号ID\r\n",mg200_ID);
+			//显示新注册的ID，ID转ASCII字符
+			LCD_dis_ch(x,50,mg200_ID+48,GREEN,32,0,NULL);
+			x+=20;
+
+			//释放状态锁，重新刷新当前页面，打印新的ID
+			ad_flag = 1;
+			
+		}
 	}
+
+
 
 	
 	

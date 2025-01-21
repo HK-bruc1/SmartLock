@@ -57,6 +57,7 @@ extern RTC_TimeTypeDef RTC_TimeStruct;
 extern RTC_DateTypeDef RTC_DateStruct;
 extern volatile u8 mg200_buff[8];
 extern volatile u8 mg200_rec_flag;
+extern u8 mg200_id[9];
 
 
 

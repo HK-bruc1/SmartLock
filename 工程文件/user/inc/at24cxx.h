@@ -50,6 +50,7 @@ u8 AT24C0x_read_bytes(u16 inner_addr,u16 num,u8 *str);
 u8 AT24C0x_write_page(u16 inner_addr,u8 num,u8 *str);
 u8 AT24C0x_write_bytes(u16 inner_addr,u16 num,u8 *str,u8 AT_flag);
 void AT24C0XX_Test(void);
+
 #endif
 
 

@@ -27,7 +27,7 @@ RTC_DateTypeDef RTC_DateStruct;
 volatile u8 mg200_buff[8];
 //mg200数据包接收完成标志
 volatile u8 mg200_rec_flag = 0; 
-//mg200的注册ID，最多存在9个用户指纹
+//mg200的注册ID，最多存在9个用户指纹ID,用户ID范围1~100，使用0xff作为初始无效值
 u8 mg200_id[9];
 
 
