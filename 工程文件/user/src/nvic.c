@@ -102,6 +102,8 @@ TIM1_BRK_TIM9_IRQHandler(void){
         tim9_count[2]++;
         //记录指纹采集时间用于超时检测
         tim9_count[3]++;
+        //自动关门计时
+        tim9_count[4]++;
 
 
         //led3呼吸灯

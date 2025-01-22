@@ -23,6 +23,51 @@ void zk_update(void){
 
 
 
+
+
+
+/***********************************************
+*函数名    :main_page
+*函数功能  :主界面函数
+*函数参数  :u8 key
+*函数返回值:无
+*函数描述  :page_mode = 1
+************************************************/
+void main_page(u8 key)
+{
+    // 定义一个标志位来表示当前的颜色状态
+    static int color_flag = 0;
+    //传递时间数据,因为多次调用避免反复定义
+    static u8 timer_buff[20];
+	//密码开锁方式
+		//进入管理员界面的标志（只有密码开锁方式可以进入到管理员界面，其他只有开门功能）
+		u8 sta;
+		//在主界面密码开锁后,才进入管理员界面使用键值访问各界面
+		sta = open_passward(key);
+		if(sta == 1){
+			//不在函数中层层调用进入下一个页面，在while中不断通过标志位轮询跳过对应界面即可
+			page_mode = 2;
+		}
+	//指纹开锁方式（低功耗模式下指纹模块被高速轮询）
+	open_fingerprint();
+
+
+
+    //主界面更新时间的时机,一分钟刷新一次,写在中断函数中，时间显示不受控制
+    if(tim9_count[2]>=60000){
+        tim9_count[2] = 0;
+        //获取日期和时间
+        RTC_GetTime(RTC_Format_BIN, &RTC_TimeStruct);
+        RTC_GetDate(RTC_Format_BIN, &RTC_DateStruct);
+        //显示时间，数据转换为字符串形式
+        sprintf((char *)timer_buff,"%02d:%02d",RTC_TimeStruct.RTC_Hours,RTC_TimeStruct.RTC_Minutes);
+        //使用48*48的
+        LCD_dis_number_pic(0,58,timer_buff,LGRAY,1,gImage_systemPic);
+    }
+
+}
+
+
 /***********************************************
 *函数名    :open_passward
 *函数功能  :密码开锁
@@ -219,44 +264,115 @@ u8 open_passward(u8 bs8116_key){
 }
 
 
+void open_fingerprint(void){
+	//是否开门成功的标志位
+	static u8 open_door_flag = 0;
+	//用来接收操作返回值
+    u8 rec_parameter,ret = 0xfe;
+	//指纹模块的触摸状态
+	static u8 finger_touch_sta = 0;
 
-/***********************************************
-*函数名    :main_page
-*函数功能  :主界面函数
-*函数参数  :u8 key
-*函数返回值:无
-*函数描述  :page_mode = 1
-************************************************/
-void main_page(u8 key)
-{
-    // 定义一个标志位来表示当前的颜色状态
-    static int color_flag = 0;
-    //传递时间数据,因为多次调用避免反复定义
-    static u8 timer_buff[20];
-    //密码开锁的状态
-    u8 sta;
-    //密码开锁
-    sta = open_passward(key);
-    if(sta == 1){
-        //不在函数中层层调用进入下一个页面，在while中不断通过标志位轮询跳过对应界面即可
-        page_mode = 2;
-    }
+	//高速轮询指纹模块的触摸状态（低功耗模式下）
+	if(MG200_DETECT_READ() && finger_touch_sta == 0){
+		//防止一次触摸多次触发
+		finger_touch_sta = 1;
+
+		//打开正常功能
+		MG200_PWR_SET();
+		tim5Delay_Ms(30);
+		//采集指纹数据
+			//超时检测清零
+			tim9_count[3] = 0;
+			//指纹变黄
+        	fingerprint_yellow();
+			do
+			{
+				//第一次采集的参数为0x00
+				ret = mg200_ReadFingerprint(0x00);
+
+				//超时检测,采集失败
+				if(tim9_count[3]>=5000)
+				{
+					printf("传感器异常，采集失败，请重试\r\n");
+					MG200_PWR_RESET();
+					//指纹恢复
+        			fingerprint_lgray();
+					//松开手指语音播报
+					voice(DOOROPEN_FAIL);
+					//状态解开
+					finger_touch_sta = 0;
+					return;
+				}
+			}while(ret!=0x00);//除开0x00为成功之外，其他非零返回都为采集失败，ret为0，不会进入循环
+
+		//指纹采集之后开始比对
+        mg200_send_command(0x71,0x00);
+        //等待并解析响应的数据包
+        if(mg200_read_cmd(0x71,&rec_parameter,&ret))
+        {
+            //非零返回值代表数据包有错误
+            printf("通信失败,接收数据包错误\r\n");
+            MG200_PWR_RESET();
+			//指纹恢复
+			fingerprint_lgray();
+			//松开手指语音播报
+			voice(DOOROPEN_FAIL);
+			//状态解开
+			finger_touch_sta = 0;
+            return;
+        }
+
+        //数据包没有错误的情况下，判断返回的操作结果
+        switch(ret)
+        {
+            case 0x00:printf("指纹对比成功:%d\r\n",rec_parameter);break;
+            default:printf("该指纹不存在\r\n");break;
+        }
+
+		if(ret==0x00){
+			//判断指纹对比结果，如果成功，则打开门,直接推门进入
+			door_open();
+			//开门状态标志位置1
+			open_door_flag = 1;
+			//语音播报
+			voice(DOOROPEN_SUCCESS);
+			//开始计时
+			tim9_count[4] = 0;
+			//5s之后自动上锁
+		}else{
+			//指纹对比失败，松开手指语音播报
+			voice(DOOROPEN_FAIL);
+			//状态解开
+			finger_touch_sta = 0;
+		}
+	}
+	
 
 
+	//松开指纹颜色恢复
+	if(MG200_DETECT_READ()==0 && finger_touch_sta==1){
+		//指纹恢复
+		fingerprint_lgray();
+		//一次采集对比完成
+		finger_touch_sta = 0;
+		//关电源
+		MG200_PWR_RESET();
+	}
 
-    //主界面更新时间的时机,一分钟刷新一次,写在中断函数中，时间显示不受控制
-    if(tim9_count[2]>=60000){
-        tim9_count[2] = 0;
-        //获取日期和时间
-        RTC_GetTime(RTC_Format_BIN, &RTC_TimeStruct);
-        RTC_GetDate(RTC_Format_BIN, &RTC_DateStruct);
-        //显示时间，数据转换为字符串形式
-        sprintf((char *)timer_buff,"%02d:%02d",RTC_TimeStruct.RTC_Hours,RTC_TimeStruct.RTC_Minutes);
-        //使用48*48的
-        LCD_dis_number_pic(0,58,timer_buff,LGRAY,1,gImage_systemPic);
-    }
-
+	//在成功开门的情况下
+	if(open_door_flag==1){
+		//单独判断指纹开锁后的自动关门逻辑
+		if(tim9_count[4]>=5000){
+			printf("close_door");
+			door_close();
+			//把标志位置0
+			open_door_flag = 0;
+		}
+	}
 }
+
+
+
 
 
 /***********************************************
@@ -517,7 +633,7 @@ void Enroll_user_page(u8 key)
 	static u8 ad_flag = 1;
 	//指纹注册的操作状态
 	static mg200_register_sta = 1;
-	//显示坐标
+	//显示坐标,注册成功之后需要老坐标定位
 	static u16 x = 30;
 	u8 mg200_i;
 	//要录入的指纹ID
@@ -526,8 +642,8 @@ void Enroll_user_page(u8 key)
 	//执行一次
 	if(ad_flag)
 	{
-		//语音播报
-		voice(REGISTER_FINGER);
+		//语音播报(在采集里面写最好，超时可以使用)
+		//voice(REGISTER_FINGER);
 		//串口上位机显示
 		printf("\r\n注册用户指纹界面:\r\n");
 		printf("【#】回到上一级菜单\r\n");
@@ -589,13 +705,8 @@ void Enroll_user_page(u8 key)
 			//把数组写入AT24
 			AT24C0x_write_bytes(21,sizeof(mg200_id),mg200_id,AT24C04);
 			printf("已注册%d号ID\r\n",mg200_ID);
-			//显示新注册的ID，ID转ASCII字符
-			LCD_dis_ch(x,50,mg200_ID+48,GREEN,32,0,NULL);
-			x+=20;
-
-			//释放状态锁，重新刷新当前页面，打印新的ID
+			//重新刷新页面，显示新的有效ID
 			ad_flag = 1;
-			
 		}
 	}
 
@@ -625,11 +736,20 @@ void Enroll_user_page(u8 key)
 void erase_user_one_page(u8 key)
 {
 	static u8 ad_flag = 1;
+	//指纹删除的操作状态
+	static mg200_erase_sta = 1;
+	//显示坐标,删除完成后，直接刷新页面打印新的有效ID，不需要老坐标
+	u16 x = 30;
+	u8 mg200_i;
+	//要删除的指纹ID
+	u8 mg200_ID;
 	
 	
 	//执行一次
 	if(ad_flag)
 	{
+		//语音播报
+		voice(DELETE_ASSIGN_FINGER);
 		//串口上位机显示
 		printf("\r\n删除指定指纹界面:\r\n");
 		printf("请选择指纹ID\r\n");
@@ -642,9 +762,46 @@ void erase_user_one_page(u8 key)
 		LCD_dis(0,220,"【*】主界面",LIGHTBLUE,0,0xff,16);
 		LCD_dis(150,220,"上一级【#】",LIGHTBLUE,0,0xff,16);
 		
+
+		//从AT24中读出指纹ID数据到数组中
+		AT24C0x_read_bytes(21,sizeof(mg200_id),mg200_id);
+		//把现有ID打印到屏幕上
+		x = 30;
+		//把存入的9个指纹ID拿出来
+		for(mg200_i=0;mg200_i<9;mg200_i++)
+		{
+			//筛选显示有效指纹ID
+			if(mg200_id[mg200_i]!= 0xff)
+			{
+				printf("%u  ",mg200_id[mg200_i]);
+				LCD_dis_ch(x,80,mg200_id[mg200_i]+48,LIGHTBLUE,0,0xff,32);
+				x+=20;
+			}
+		}
 		
 		ad_flag = 0;
 	}
+
+	//删除指定ID指纹，key为有效值才执行删除函数
+	if(key != 0xff && key != '#' && key != '*'){
+		//键值与ID的转换
+		mg200_erase_sta = EraseOne(key-48);
+		//删除成功，本机数据也要删除
+		if(mg200_erase_sta == 0x00)
+		{
+			//ID和下标相差1,恢复默认值
+			mg200_id[key-48-1] = 0xff;
+			//把数组重新写入AT24
+			AT24C0x_write_bytes(21,sizeof(mg200_id),mg200_id,AT24C04);
+			//语言播报
+			voice(SETTING_SUCCESS);
+
+			//释放状态锁，重新刷新当前页面，打印新的有效ID
+			ad_flag = 1;
+			
+		}
+	}
+
 	
 	switch(key)
 	{
@@ -670,9 +827,11 @@ void erase_user_all_page(u8 key)
 
 	//执行一次
 	if(ad_flag)
-	{
+	{	
+		//语音播报
+		voice(DELETE_ALLFINGER);
 		//串口上位机显示
-		printf("\r\n删除所有指纹？:\r\n");
+		printf("\r\n删除所有指纹?:\r\n");
 		printf("【*】确认\r\n");
 		printf("#】取消\r\n");
 		
@@ -687,12 +846,21 @@ void erase_user_all_page(u8 key)
 		
 		ad_flag = 0;
 	}
+
 	
 
 	
 	if(key == '*')     //确认删除 后 回到上级菜单
 	{
 		//删除的动作
+			//清除指纹模块
+			erase_all();
+			//把本机指纹数据覆盖为无效值0xff
+			memset(mg200_id,0xff,sizeof(mg200_id));
+			AT24C0x_write_bytes(21,sizeof(mg200_id),mg200_id,AT24C04);
+			printf("已删除所有指纹\r\n");
+			//语音播报
+			voice(SETTING_SUCCESS);
 		
 		//回上级菜单
 		page_mode = 4;
@@ -720,10 +888,18 @@ void erase_user_all_page(u8 key)
 void erase_user_match_page(u8 key)
 {
 	static u8 ad_flag = 1;
+	//显示坐标
+	static u16 x = 30;
+	static u8 mg200_i = 0;
+	//要删除的指纹ID列表，初始化无效ID为0
+	static u8 mg200_ID[9] = {0};
+
 	
 	//执行一次
 	if(ad_flag == 1)
 	{
+		//语音播报(在指纹采集时播报更好，跟超时机制一起用)
+		//voice(DELETE_ASSIGNFIGNER);
 		//串口上位机显示
 		printf("\r\n识别删除指纹界面\r\n");
 		printf("识别指纹\r\n");
@@ -733,12 +909,40 @@ void erase_user_match_page(u8 key)
 		//LCD屏幕显示
 		LCD_dis_pic(0,0,gImage_systemPic);//设置图片为背景
 		LCD_dis(25,48,(u8 *)"识别删除指纹",LIGHTBLUE,0,0xff,32);
-		LCD_dis_number_pic(96,140,(u8 *)"Z",LGRAY,1,gImage_systemPic);
+		LCD_dis_number_pic(96,120,(u8 *)"Z",LGRAY,1,gImage_systemPic);
 		LCD_dis(160,220,"【#】返回",LIGHTBLUE,0,0xff,16);
 		LCD_dis(0,220,"确认【*】",LIGHTBLUE,0,0xff,16);
-		
-		
+
+		//从AT24中读出指纹ID数据到数组中
+		AT24C0x_read_bytes(21,sizeof(mg200_id),mg200_id);
+		//每次进来刷新一下坐标
+		x = 30;
+		//识别的指纹个数也要重置
+		mg200_i = 0;
+		//把列表重新初始化无效值，等待重新识别
+		for(int l=0;l<9;l++){
+			mg200_ID[l] = 0;
+		}
+
 		ad_flag = 0;
+	}
+
+
+	//高速轮询指纹对比函数
+	//指纹对比成时,识别成功的指纹到达最大限制就不识别了
+	if(Match_l_n(&mg200_ID[mg200_i])==0x00 && mg200_i<9){
+		//存储识别成功的ID列表位置往后移动
+		mg200_i++;
+		//显示对比成功的ID编号,数字转字符
+		LCD_dis_ch(x,80,mg200_ID[mg200_i-1]+48,LIGHTBLUE,0,0xff,32);
+		x+=20;
+	}
+
+	//识别数量要限制，因为本机上只有9个指纹，但是mg200可能不止9个
+	if(mg200_i == 9){
+		//让他显示一次，等删除操作后会重置
+		mg200_i++;
+		printf("指纹识别个数达到上限,请先删除已经识别指纹ID\r\n");
 	}
 	
 	
@@ -747,7 +951,46 @@ void erase_user_match_page(u8 key)
 	/*按键确认*/
 	if(key == '*' )     //确认删除 后 回到上级菜单
 	{
-		
+		//创建一个数组记录已删除的ID,初始化为0,这是为了保证删除的时候，不会重复删除，只在删除时使用
+		u8 deleted_ids[9] = {0};  //最多有9个指纹ID被删除
+		u8 deleted_count = 0;
+		//本机和模块数据双删除
+			//模块,从0遍历到mg200_i，但是多加了一个
+			for(int j=0;j<mg200_i;j++){
+				//检查当前ID是否已经被删除过,下一个识别成功的ID检测时，标志会重置
+				u8 already_deleted = 0;
+				for(int i = 0; i < 9; i++) {
+					if(deleted_ids[i] == mg200_ID[j]) {
+						//这个ID已经被删除过了
+						already_deleted = 1;
+						//跳出这个校验
+						break;
+					}
+				}
+
+				//如果ID没有被删除过,则进行删除操作
+				if(!already_deleted){
+					//访问列表中的指定ID并删除
+					EraseOne(mg200_ID[j]);
+
+					//遍历本地ID数据进行删除
+					for(int k=0;k<9;k++){
+						if(mg200_id[k] == mg200_ID[j]){
+							//把本机数据覆盖为无效值0xff
+							mg200_id[k] = 0xff;
+						}
+					}
+
+					//记录已删除的ID
+            		deleted_ids[deleted_count] = mg200_ID[j];
+					deleted_count++;
+				}
+			}
+		//把数组重新写入AT24
+		AT24C0x_write_bytes(21,sizeof(mg200_id),mg200_id,AT24C04);
+		//语音播报
+		voice(SETTING_SUCCESS);
+
 		//回上级菜单
 		page_mode = 4;
 		ad_flag=1;

@@ -158,6 +158,8 @@ u8 mg200_register(u8 ID){
     /*串口层提示开始注册，感应上电方式*/
 	if(touch_statu == 0)
 	{
+        //语音播报
+        voice(DELETE_ASSIGNFIGNER);
 		printf("请将手指放到指纹模块开始注册指纹\r\n");
 		touch_statu = 1;  	
 		printf("第一次指纹采集\r\n");
@@ -197,7 +199,7 @@ u8 mg200_register(u8 ID){
             //语音播报
             voice(DELETE_ASSIGNFIGNER);
         }
-        //等用户抬起而且第一次采集成功后，再次触摸时为第二次采集,
+        //等用户抬起而且第一次采集成功后，再次触摸时为第二次采集
         if(MG200_DETECT_READ()!=1 && touch_statu==0xff)
         {
             //指纹恢复
@@ -339,6 +341,149 @@ u8 erase_all(void)
 	MG200_PWR_RESET();
 	
 	return ret;
+}
+
+
+/**
+ * @brief 删除指定ID指纹
+ * 
+ * @param ID 
+ * @return u8 0xff就是数据包接收错误
+ */
+u8 EraseOne(u8 ID){
+    //用来接收操作返回值
+    u8 rec_parameter,ret = 0xfe;
+
+    //上电打开正常功能
+    MG200_PWR_SET();
+	tim5Delay_Ms(30);
+    //发送命令
+    mg200_send_command(0x73,ID);
+
+    //等待并解析响应的数据包
+	if(mg200_read_cmd(0x73,&rec_parameter,&ret))
+	{
+        //非零返回值代表数据包有错误
+		printf("通信失败,接收数据包错误\r\n");
+		MG200_PWR_RESET();
+		return 0xff;
+	}
+	
+    //数据包没有错误的情况下，判断返回的操作结果
+	switch(ret)
+	{
+		case 0:printf("指纹%d删除成功\r\n",ID);break;
+		case 0x83:printf("参数错误\r\n");break;
+        case 0x90:printf("未注册的用户\r\n");break;
+        case 0xff:printf("写入ROM错误\r\n");break;
+	}
+
+    //断电进入低功耗模式
+	MG200_PWR_RESET();
+	
+	return ret;
+}
+
+
+/***********************************************
+*函数名    ：Match_l_n
+*函数功能  ：比对指纹
+*函数参数  ：u8 *ID    对比成功的ID号,把ID带出去
+*函数返回值：u8        对比结果
+*函数描述  ：
+
+						返回值0xfc 指纹传感器异常  
+						对比成功，接收包的参数   是ID号   失败0x00
+						对比成功，接收包的result 是0x00   失败0x92
+             
+***********************************************/
+u8 Match_l_n(u8 *ID){
+    //用来接收操作返回值
+    u8 rec_parameter,ret = 0xfe;
+    //触摸标志位变量
+    static u8 touch_statu = 0;
+
+
+    /*串口层提示开始注册，感应上电方式*/
+	if(touch_statu == 0)
+	{
+        //语音播报(在指纹采集时播报更好，跟超时机制一起用)
+		voice(DELETE_ASSIGNFIGNER);
+		printf("请将手指放到指纹模块开始识别指纹\r\n");
+        //指纹恢复
+        fingerprint_lgray();
+		touch_statu = 1;  	
+	}
+
+    /*采集指纹*/
+    if(MG200_DETECT_READ() && touch_statu==1)
+    {
+        //感应上电，打开灯光
+        MG200_PWR_SET();
+        //等待感应上电完成
+        tim5Delay_Ms(30);
+        //超时检测清零
+        tim9_count[3] = 0;
+        //指纹变黄
+        fingerprint_yellow();
+
+        do
+        {
+            //第一次采集的参数为0x00
+            ret = mg200_ReadFingerprint(0x00);
+
+            //超时检测
+            if(tim9_count[3]>=5000)
+            {
+                printf("传感器异常，采集失败，请重新注册\r\n");
+                touch_statu = 0;     //重新进入注册功能标志位
+                MG200_PWR_RESET();
+                return 0xfc;
+            }
+        }while(ret!=0x00);//除开0x00为成功之外，其他非零返回都为采集失败，ret为0，不会进入循环
+
+        //避免反复进入采集操作
+        touch_statu = 0xff;
+        printf("指纹采集成功,请放手指\r\n");
+        //语音播报
+        voice(DELETE_ASSIGNFIGNER);
+    }
+
+    //等用户抬起作为一个完成的指纹采集识别操作
+    if(MG200_DETECT_READ()==0 && touch_statu==0xff)
+    {
+        //指纹恢复
+        fingerprint_lgray();
+
+        //指纹采集之后开始比对
+        mg200_send_command(0x71,0x00);
+        //等待并解析响应的数据包
+        if(mg200_read_cmd(0x71,&rec_parameter,&ret))
+        {
+            //非零返回值代表数据包有错误
+            printf("通信失败,接收数据包错误\r\n");
+            MG200_PWR_RESET();
+            return 0xff;
+        }
+
+        //数据包没有错误的情况下，判断返回的操作结果
+        switch(ret)
+        {
+            case 0x00:printf("指纹对比成功:%d\r\n",rec_parameter);break;
+            default:printf("该指纹不存在\r\n");break;
+        }
+
+        *ID = rec_parameter;
+        //一次完整的采集对比操作完成,把状态重置为待采集指纹对比状态
+        touch_statu = 1;
+        //断电进入低功耗模式
+        MG200_PWR_RESET();
+        return ret;
+    }
+
+    //如果正常操作了，会返回预定状态值
+    //没有操作的情况下返回0xfe
+    return 0xfe;
 }
 
 

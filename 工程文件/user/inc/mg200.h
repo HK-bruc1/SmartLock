@@ -29,6 +29,8 @@ u8 mg200_read_cmd(u8 cmd,u8 *parameter,u8 *result);
 u8 mg200_ReadFingerprint(u8 parameter);
 u8 mg200_register(u8 ID);
 u8 erase_all(void);
+u8 EraseOne(u8 ID);
+u8 Match_l_n(u8 *ID);
 
 
 

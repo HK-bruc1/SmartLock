@@ -52,7 +52,7 @@ compiling function.c...
   #endif
 .\user\inc\font.h(14): warning:  #1-D: last line of file ends without a newline
   #endif
-.\user\inc\function.h(28): warning:  #1-D: last line of file ends without a newline
+.\user\inc\function.h(29): warning:  #1-D: last line of file ends without a newline
   #endif
 .\user\inc\voice.h(52): warning:  #1-D: last line of file ends without a newline
   #endif
@@ -60,25 +60,29 @@ compiling function.c...
   #endif
 .\user\inc\bs8116.h(27): warning:  #1-D: last line of file ends without a newline
   #endif
-.\user\inc\mg200.h(36): warning:  #1-D: last line of file ends without a newline
+.\user\inc\mg200.h(38): warning:  #1-D: last line of file ends without a newline
   #endif
 .\user\inc\main.h(65): warning:  #1-D: last line of file ends without a newline
   #endif
-user\src\function.c(110): warning:  #167-D: argument of type "const unsigned char *" is incompatible with parameter of type "u8 *"
-                  LCD_xy_clear(45-8,200-8,166,16,0xffff,1,gImage_systemPic);
-user\src\function.c(120): warning:  #167-D: argument of type "const unsigned char *" is incompatible with parameter of type "u8 *"
-                  LCD_xy_clear(70,130,100,16,0xffff,1,gImage_systemPic);
-user\src\function.c(233): warning:  #177-D: variable "color_flag"  was declared but never referenced
+user\src\function.c(39): warning:  #177-D: variable "color_flag"  was declared but never referenced
       static int color_flag = 0;
-user\src\function.c(327): warning:  #177-D: variable "y"  was declared but never referenced
+user\src\function.c(155): warning:  #167-D: argument of type "const unsigned char *" is incompatible with parameter of type "u8 *"
+                  LCD_xy_clear(45-8,200-8,166,16,0xffff,1,gImage_systemPic);
+user\src\function.c(165): warning:  #167-D: argument of type "const unsigned char *" is incompatible with parameter of type "u8 *"
+                  LCD_xy_clear(70,130,100,16,0xffff,1,gImage_systemPic);
+user\src\function.c(443): warning:  #177-D: variable "y"  was declared but never referenced
   	static u8 x=45,y=95;
-user\src\function.c(519): warning:  #260-D: explicit type is missing ("int" assumed)
+user\src\function.c(635): warning:  #260-D: explicit type is missing ("int" assumed)
   	static mg200_register_sta = 1;
-user\src\function.c: 23 warnings, 0 errors
+user\src\function.c(740): warning:  #260-D: explicit type is missing ("int" assumed)
+  	static mg200_erase_sta = 1;
+user\src\function.c(745): warning:  #177-D: variable "mg200_ID"  was declared but never referenced
+  	u8 mg200_ID;
+user\src\function.c: 25 warnings, 0 errors
 linking...
-Program Size: Code=23998 RO-data=129278 RW-data=200 ZI-data=1792  
+Program Size: Code=25798 RO-data=129278 RW-data=208 ZI-data=1800  
 FromELF: creating hex file...
-".\Objects\smart_lock.axf" - 0 Error(s), 23 Warning(s).
+".\Objects\smart_lock.axf" - 0 Error(s), 25 Warning(s).
 
 <h2>Software Packages used:</h2>
 

@@ -23,6 +23,7 @@ void erase_picc_all_page(u8 key);
 void erase_picc_match_page(u8 key);
 void voice_light_page(u8 key);
 void factory_reset_page(u8 key);
+void open_fingerprint(void);
 
 
 #endif
