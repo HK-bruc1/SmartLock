@@ -1016,6 +1016,8 @@ void erase_user_match_page(u8 key)
 void rfid_page(u8 key)
 {
 	static u8 ad_flag = 1;
+	//首次进入卡片管理界面标志
+	u8 open_flag;
 	
 	//执行一次
 	if(ad_flag)
@@ -1039,6 +1041,20 @@ void rfid_page(u8 key)
 		LCD_dis(5,220,"主界面【*】",LIGHTBLUE,0,0xff,16);
 		LCD_dis(145,220,"【#】上一级",LIGHTBLUE,0,0xff,16);
 		
+		
+		// //判断是不是第一次进入卡片管理界面，决定是否将9个卡片的二维数组的初始值写入到AT24C04中
+		// //10号地址存首次开机标志，20号地址存首次打开指纹管理界面，21~29号地址存指纹ID信息
+		// //首次进入卡片管理界面标志可以存在30号地址，卡片ID信息二维数组[9][4]
+		// at24c0x_read_byte(30,&open_flag);
+		// if(open_flag != OPEN_FLAG)
+		// {
+		// 	//把原始数组存储到AT24中,使用0xff作为初始无效值
+		// 	memset(picc,0xff,sizeof(picc));
+		// 	AT24C0x_write_bytes(31,sizeof(picc),picc,AT24C04);
+		// 	//把第一次进入标志位写入到AT(板子上是AT24C04)
+		// 	at24c0x_write_byte(30,OPEN_FLAG);
+		// }
+
 		ad_flag = 0;
 	}
 	
@@ -1065,14 +1081,19 @@ void rfid_page(u8 key)
 ************************************************/
 void picc_user_page(u8 key)
 {
-	
 	static u8 ad_flag = 1;
+	u8 picc_i,picc_j;
+	//打印卡片ID编号坐标
+	static u16 x;
+	static u8 picc_cont = 0;
+	u8 sta;
+
 	
 	//执行一次
 	if(ad_flag)
 	{
 		//串口上位机显示
-		printf("\r\n注册用户卡片界面：\r\n");
+		printf("\r\n注册用户卡片界面:\r\n");
 		printf("【#】回到上一级菜单\r\n");
 		printf("【*】回到主界面\r\n");
 		
@@ -1084,13 +1105,84 @@ void picc_user_page(u8 key)
 		LCD_dis_number_pic(130,120,"Q",LGRAY,1,gImage_systemPic);
 		LCD_dis(0,220,"【*】主界面",LIGHTBLUE,0,0xff,16);
 		LCD_dis(150,220,"上一级【#】",LIGHTBLUE,0,0xff,16);
-		
+
+
+		// //从AT24中读出卡片ID数据到数组中
+		// AT24C0x_read_bytes(31,sizeof(picc),picc);
+		// //打印已经注册的卡片ID编号
+		// x = 30;
+		// picc_cont = 0;
+		// //遍历卡片取出有效卡片
+		// for(picc_i=0;picc_i<9;picc_i++)
+		// {
+		// 	for(picc_j=0;picc_j<4;picc_j++)
+		// 	{
+		// 		//只要有卡片ID数据，那么对应外层9个元素中的四个小元素不可能全是0xff，
+		// 		if(picc[picc_i][picc_j] != 0xff)
+		// 		{
+		// 			LCD_dis_ch(x,80,picc_i+48,LIGHTBLUE,0,0xff,32);
+		// 			picc_cont++;
+		// 			x+=20;
+		// 			break;
+		// 		}
+		// 	}
+		// }
+		// //已经存在9个卡片，则提示
+		// if(picc_cont == 9)
+		// {
+		// 	LCD_dis(40,95,"卡片数量注册已达上限",RED,0,0xff,16);
+			
+		// }
+
 		ad_flag = 0;
 	}
-	
-	
 
-	
+
+	// //如果还可以注册，就找到要注册卡片ID数据对应的二维数组下标
+	// if(picc_cont<9)
+	// {
+	// 	//picc_id的值从哪里拿？？？？？
+	// 	sta = WriteCardData(1,picc_id,picc_id);
+	// 	if(sta == MI_OK)
+	// 	{
+	// 		for(picc_i=0;picc_i<9;picc_i++)
+	// 		{
+	// 			for(picc_j=0;picc_j<4;picc_j++)
+	// 			{	
+	// 				//如果有一个不是0xff就代表这个ID空间被使用了
+	// 				if(picc[picc_i][picc_j] != 0xff)
+	// 				{
+	// 					break;
+	// 				}
+	// 			}
+
+	// 			//一个空间都是0xff的话就代表可以使用，跳出循环找到一个可用空间
+	// 			if(picc_j == 4)
+	// 			{
+	// 				break;
+	// 			}
+				
+	// 		}
+
+	// 		//picc_i就是要存储的元素下标，没有定义在循环中，所以下标可以用
+	// 		//注册完了再一次进入注册函数时，下标变量会重新定义
+	// 		for(picc_j=0;picc_j<4;picc_j++)
+	// 		{
+	// 			//读卡拿到的四个字节的卡片序列号，存储到数组中
+	// 			picc[picc_i][picc_j] = picc_id[picc_j];
+	// 		}
+	// 		LCD_dis_ch(x,80,picc_i+48,LIGHTBLUE,0,0xff,32);
+	// 		x+=20;
+	// 		picc_cont++;
+	// 		if(picc_cont == 9)
+	// 		{
+	// 			LCD_dis(40,95,"卡片数量已达上限",RED,0,0xff,16);
+	// 		}
+	// 	}
+	// }
+	// //存储卡片ID后建议立即写入AT24C0x
+
+
 	
 	switch(key)
 	{

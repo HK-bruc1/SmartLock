@@ -49,3 +49,4 @@
 .\objects\at24cxx.o: .\user\inc\bs8116.h
 .\objects\at24cxx.o: .\user\inc\rtc.h
 .\objects\at24cxx.o: .\user\inc\mg200.h
+.\objects\at24cxx.o: .\user\inc\rc522.h

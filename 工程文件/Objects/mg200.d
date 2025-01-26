@@ -49,3 +49,4 @@
 .\objects\mg200.o: .\user\inc\bs8116.h
 .\objects\mg200.o: .\user\inc\rtc.h
 .\objects\mg200.o: .\user\inc\mg200.h
+.\objects\mg200.o: .\user\inc\rc522.h

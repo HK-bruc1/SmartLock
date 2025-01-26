@@ -49,3 +49,4 @@
 .\objects\function.o: .\user\inc\bs8116.h
 .\objects\function.o: .\user\inc\rtc.h
 .\objects\function.o: .\user\inc\mg200.h
+.\objects\function.o: .\user\inc\rc522.h

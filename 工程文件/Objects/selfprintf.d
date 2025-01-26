@@ -49,3 +49,4 @@
 .\objects\selfprintf.o: .\user\inc\bs8116.h
 .\objects\selfprintf.o: .\user\inc\rtc.h
 .\objects\selfprintf.o: .\user\inc\mg200.h
+.\objects\selfprintf.o: .\user\inc\rc522.h

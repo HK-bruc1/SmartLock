@@ -49,3 +49,4 @@
 .\objects\font.o: .\user\inc\bs8116.h
 .\objects\font.o: .\user\inc\rtc.h
 .\objects\font.o: .\user\inc\mg200.h
+.\objects\font.o: .\user\inc\rc522.h

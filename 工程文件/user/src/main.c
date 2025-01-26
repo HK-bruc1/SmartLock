@@ -31,6 +31,14 @@ volatile u8 mg200_rec_flag = 0;
 u8 mg200_id[9];
 
 
+//RC522
+u8 picc_passward[6]={0xff,0xff,0xff,0xff,0xff,0xff}; //卡密码-初始密码--白卡的出厂密码
+//定义一个二维数组，设定一共可以注册9个卡片，二维数组9个元素，每个元素卡序号4个字节数据
+u8 picc[9][4];
+//卡片ID
+u8 picc_id[16];
+
+
 
 int main (void){
 	//中断优先级分组
@@ -62,6 +70,9 @@ int main (void){
 	rtc_init();
 	//指纹模块初始化
 	mg200_init();
+	//RC522读写器模块初始化
+	MFRC522_Init();
+	
 
 	//定时器9的定时中断初始化,1ms进入一次中断
 	tim9_it_ms(1);
