@@ -470,36 +470,49 @@ char MFRC522_SelectTag(unsigned char *pSnr)
 
 
 /////////////////////////////////////////////////////////////////////
-//功    能：验证卡片密码
-//参数说明: auth_mode[IN]: 密码验证模式
+// 功    能：验证卡片密码
+// 参数说明: 
+//    auth_mode[IN]：密码验证模式
 //                 0x60 = 验证A密钥
 //                 0x61 = 验证B密钥 
-//          addr[IN]：块地址
-//          pKey[IN]：密码
-//          pSnr[IN]：卡片序列号，4字节
-//返    回: 成功返回MI_OK
-/////////////////////////////////////////////////////////////////////               
-char MFRC522_AuthState(unsigned char auth_mode,unsigned char addr,unsigned char *pKey,unsigned char *pSnr)
+//    addr[IN]：块地址
+//    pKey[IN]：密码
+//    pSnr[IN]：卡片序列号，4字节
+// 返    回: 成功返回 MI_OK
+/////////////////////////////////////////////////////////////////////
+char MFRC522_AuthState(unsigned char auth_mode, unsigned char addr, unsigned char *pKey, unsigned char *pSnr)
 {
     char status;
-    unsigned int  unLen;
-    unsigned char i,ucComMF522Buf[MAXRLEN]; 
+    unsigned int unLen = 0; // 确保初始化
+    unsigned char i, ucComMF522Buf[MAXRLEN]; // 通信缓冲区
 
-    ucComMF522Buf[0] = auth_mode;
-    ucComMF522Buf[1] = addr;
-    for (i=0; i<6; i++)
-    {    ucComMF522Buf[i+2] = *(pKey+i);   }
-    for (i=0; i<6; i++)
-    {    ucComMF522Buf[i+8] = *(pSnr+i);   }
- //   memcpy(&ucComMF522Buf[2], pKey, 6); 
- //   memcpy(&ucComMF522Buf[8], pSnr, 4); 
-    
-    status = MFRC522_ToCard(PCD_AUTHENT,ucComMF522Buf,12,ucComMF522Buf,&unLen);
-    if ((status != MI_OK) || (!(Read_MFRC522(Status2Reg) & 0x08)))
-    {   status = MI_ERR;   }
-    
+    ucComMF522Buf[0] = auth_mode; // 验证模式
+    ucComMF522Buf[1] = addr;      // 块地址
+
+    // 使用循环赋值密码到缓冲区
+    for (i = 0; i < 6; i++) {
+        ucComMF522Buf[i + 2] = *(pKey + i);
+    }
+    // 使用循环赋值序列号（4字节）到缓冲区
+    for (i = 0; i < 4; i++) {
+        ucComMF522Buf[i + 8] = *(pSnr + i);
+    }
+
+    // 以下两行可以替代上述循环赋值
+    // memcpy(&ucComMF522Buf[2], pKey, 6); // 复制密码
+    // memcpy(&ucComMF522Buf[8], pSnr, 4); // 复制序列号
+
+    // 发送命令
+    status = MFRC522_ToCard(PCD_AUTHENT, ucComMF522Buf, 12, ucComMF522Buf, &unLen);
+
+    // 检查状态寄存器，确认认证是否成功
+    if ((status != MI_OK) || (!(Read_MFRC522(Status2Reg) & 0x08))) {
+        status = MI_ERR;
+    }
+
     return status;
 }
+
 
 
 /////////////////////////////////////////////////////////////////////
@@ -607,4 +620,110 @@ unsigned char Test_MFRC522()
     
     printf("\r\n");
     return 1;
+}
+
+//修改密码的测试函数
+//修改前后密码认证按需修改一下，有一个小bug,显示密码A时不能正确显示，其他正常，数据写入也正常
+void Test_ChangeSector15Password() {
+    unsigned char status;
+    //额外的一个字节用于可能的校验码或结束标志，操作按四个字节操作
+    unsigned char snr[5]; // 卡片UID
+    unsigned char trailer_data[16]; // 扇区尾块数据缓存
+    unsigned char pass_A[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // 默认密码A
+    unsigned char pass_Apro[6] = {0x12, 0x12, 0x12, 0x12, 0x12, 0x12};//复位用于测试的密码A，记得修改
+    //使用const确保数据不被意外修改
+    const unsigned char pass_new[16] = { // 新的扇区尾块数据
+        0x12, 0x12, 0x12, 0x12, 0x12, 0x12, // 新密码A
+        0xFF, 0x07, 0x80, 0x69,             // 访问控制字节（保持不变）
+        0x13, 0x13, 0x13, 0x13, 0x13, 0x13  // 新密码B
+    };
+    //使用const确保数据不被意外修改
+    const unsigned char pass_old[16] = { // 新的扇区尾块数据
+        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, // 默认密码A
+        0xFF, 0x07, 0x80, 0x69,             // 访问控制字节（保持不变）
+        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF  // 默认密码B
+    };
+    //只修改一次，防止在while（1）反复修改
+    static unsigned char flag = 1; // 静态变量，保证多次调用时状态保持一致
+
+
+    if(flag == 1){
+        printf("=== 开始更改扇区15密码 ===\r\n");
+
+        // 1. 寻卡
+        unsigned char cardType[2];
+        status = MFRC522_Request(0x52, cardType); // 0x52 = 寻感应区内所有的卡
+        if (status != MI_OK) {
+            printf("寻卡失败！\r\n");
+            MFRC522_Reset();
+            MFRC522_AntennaOff(); 
+            MFRC522_AntennaOn(); 
+            return;
+        }
+        printf("卡片类型：%02X%02X\n", cardType[0], cardType[1]);
+
+        // 2. 防冲突，获取卡片UID
+        status = MFRC522_Anticoll(snr);
+        if (status != MI_OK) {
+            printf("获取卡片UID失败!\r\n");
+            return;
+        }
+        printf("卡片UID:%02X %02X %02X %02X\r\n", snr[0], snr[1], snr[2], snr[3]);
+
+        // 3. 选中卡片
+        status = MFRC522_SelectTag(snr);
+        if (status != MI_OK) {
+            printf("选卡失败！\r\n");
+            return;
+        }
+        printf("卡片已选中。\r\n");
+
+        // 4. 验证密码A,扇区15的块号（每个扇区4块，最后一块是扇区尾块）
+        status = MFRC522_AuthState(0x60, 63, pass_A, snr); // 0x60 = 验证密码A
+        if (status != MI_OK) {
+            printf("密码A认证失败!\r\n");
+            return;
+        }
+        printf("密码A认证成功。\r\n");
+
+        // 5. 读取扇区15的尾块数据(修改确实成功了，密码也能认证，但是获取不高密码A，其他字节数据可以)
+        status = MFRC522_Read(63, trailer_data);
+        if (status != MI_OK) {
+            printf("读取扇区15尾块数据失败!\r\n");
+            return;
+        }
+        printf("当前扇区15尾块数据:");
+        for (int i = 0; i < 16; i++) {
+            printf("%02X ", trailer_data[i]);
+        }
+        printf("\r\n");
+
+        // 6. 更改密码A和密码B
+        memcpy(trailer_data, pass_old, 16);
+        status = MFRC522_Write(63, trailer_data);
+        if (status != MI_OK) {
+            printf("写入新密码失败！\r\n");
+            return;
+        }
+        printf("新密码写入成功。\r\n");
+
+        // 7. 测试新密码是否生效
+        unsigned char pass_A_new[6] = {0x12, 0x12, 0x12, 0x12, 0x12, 0x12};
+        unsigned char pass_A_old[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+        status = MFRC522_AuthState(0x60,63, pass_A_old, snr); // 用新密码A验证
+        if (status != MI_OK) {
+            printf("新密码认证失败！\r\n");
+            return;
+        }
+        printf("新密码认证成功,扇区15密码修改完成!\r\n");
+
+        // 8. 停止对卡片操作
+        MFRC522_Halt();
+        printf("卡片操作已停止。\r\n");
+        printf("=== 扇区15密码修改流程完成 ===\r\n");
+
+        flag = 0;
+    }else {
+        printf("密码已经修改过一次！\r\n");
+    }
 }

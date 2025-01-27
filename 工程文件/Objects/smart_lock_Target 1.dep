@@ -29,7 +29,7 @@ I (.\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc
 I (.\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc\stm32f4xx_usart.h)(0x53DBAFAE)
 I (.\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc\stm32f4xx_wwdg.h)(0x53DBAFAE)
 I (.\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc\misc.h)(0x53DBAFAE)
-F (.\user\src\main.c)(0x6795FFC5)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\Include -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc -I .\user\inc-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.7.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="527" -DSTM32F401xE -DSTM32F401xx -DUSE_STDPERIPH_DRIVER-o .\objects\main.o --omf_browse .\objects\main.crf --depend .\objects\main.d)
+F (.\user\src\main.c)(0x6796EA4A)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\Include -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc -I .\user\inc-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.7.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="527" -DSTM32F401xE -DSTM32F401xx -DUSE_STDPERIPH_DRIVER-o .\objects\main.o --omf_browse .\objects\main.crf --depend .\objects\main.d)
 I (.\user\inc\main.h)(0x67959535)
 I (.\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\stm32f4xx.h)(0x53DBA48A)
 I (.\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\Include\core_cm4.h)(0x53C7D532)
@@ -78,7 +78,7 @@ I (.\user\inc\iwdg.h)(0x6785E130)
 I (.\user\inc\bs8116.h)(0x67864F50)
 I (.\user\inc\rtc.h)(0x6788AEEA)
 I (.\user\inc\mg200.h)(0x67906038)
-I (.\user\inc\rc522.h)(0x6795FE3C)
+I (.\user\inc\rc522.h)(0x6796E9A5)
 F (.\user\inc\main.h)(0x67959535)()
 F (.\user\src\led.c)(0x677E63F2)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\Include -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc -I .\user\inc-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.7.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="527" -DSTM32F401xE -DSTM32F401xx -DUSE_STDPERIPH_DRIVER-o .\objects\led.o --omf_browse .\objects\led.crf --depend .\objects\led.d)
 I (.\user\inc\main.h)(0x67959535)
@@ -129,7 +129,7 @@ I (.\user\inc\iwdg.h)(0x6785E130)
 I (.\user\inc\bs8116.h)(0x67864F50)
 I (.\user\inc\rtc.h)(0x6788AEEA)
 I (.\user\inc\mg200.h)(0x67906038)
-I (.\user\inc\rc522.h)(0x6795FE3C)
+I (.\user\inc\rc522.h)(0x6796E9A5)
 F (.\user\inc\led.h)(0x677D16D2)()
 F (.\user\src\key.c)(0x677F2AE5)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\Include -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc -I .\user\inc-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.7.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="527" -DSTM32F401xE -DSTM32F401xx -DUSE_STDPERIPH_DRIVER-o .\objects\key.o --omf_browse .\objects\key.crf --depend .\objects\key.d)
 I (.\user\inc\main.h)(0x67959535)
@@ -180,7 +180,7 @@ I (.\user\inc\iwdg.h)(0x6785E130)
 I (.\user\inc\bs8116.h)(0x67864F50)
 I (.\user\inc\rtc.h)(0x6788AEEA)
 I (.\user\inc\mg200.h)(0x67906038)
-I (.\user\inc\rc522.h)(0x6795FE3C)
+I (.\user\inc\rc522.h)(0x6796E9A5)
 F (.\user\inc\key.h)(0x677DD05B)()
 F (.\user\src\usart.c)(0x678E5C05)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\Include -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc -I .\user\inc-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.7.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="527" -DSTM32F401xE -DSTM32F401xx -DUSE_STDPERIPH_DRIVER-o .\objects\usart.o --omf_browse .\objects\usart.crf --depend .\objects\usart.d)
 I (.\user\inc\main.h)(0x67959535)
@@ -231,7 +231,7 @@ I (.\user\inc\iwdg.h)(0x6785E130)
 I (.\user\inc\bs8116.h)(0x67864F50)
 I (.\user\inc\rtc.h)(0x6788AEEA)
 I (.\user\inc\mg200.h)(0x67906038)
-I (.\user\inc\rc522.h)(0x6795FE3C)
+I (.\user\inc\rc522.h)(0x6796E9A5)
 F (.\user\inc\usart.h)(0x678E33A7)()
 F (.\user\src\nvic.c)(0x6790CD94)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\Include -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc -I .\user\inc-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.7.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="527" -DSTM32F401xE -DSTM32F401xx -DUSE_STDPERIPH_DRIVER-o .\objects\nvic.o --omf_browse .\objects\nvic.crf --depend .\objects\nvic.d)
 I (.\user\inc\main.h)(0x67959535)
@@ -282,7 +282,7 @@ I (.\user\inc\iwdg.h)(0x6785E130)
 I (.\user\inc\bs8116.h)(0x67864F50)
 I (.\user\inc\rtc.h)(0x6788AEEA)
 I (.\user\inc\mg200.h)(0x67906038)
-I (.\user\inc\rc522.h)(0x6795FE3C)
+I (.\user\inc\rc522.h)(0x6796E9A5)
 F (.\user\inc\nvic.h)(0x677E66D5)()
 F (.\user\inc\selfprintf.h)(0x677E3E54)()
 F (.\user\src\selfprintf.c)(0x677E3E3A)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\Include -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc -I .\user\inc-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.7.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="527" -DSTM32F401xE -DSTM32F401xx -DUSE_STDPERIPH_DRIVER-o .\objects\selfprintf.o --omf_browse .\objects\selfprintf.crf --depend .\objects\selfprintf.d)
@@ -334,7 +334,7 @@ I (.\user\inc\iwdg.h)(0x6785E130)
 I (.\user\inc\bs8116.h)(0x67864F50)
 I (.\user\inc\rtc.h)(0x6788AEEA)
 I (.\user\inc\mg200.h)(0x67906038)
-I (.\user\inc\rc522.h)(0x6795FE3C)
+I (.\user\inc\rc522.h)(0x6796E9A5)
 F (.\user\src\tim.c)(0x678101F1)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\Include -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc -I .\user\inc-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.7.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="527" -DSTM32F401xE -DSTM32F401xx -DUSE_STDPERIPH_DRIVER-o .\objects\tim.o --omf_browse .\objects\tim.crf --depend .\objects\tim.d)
 I (.\user\inc\main.h)(0x67959535)
 I (.\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\stm32f4xx.h)(0x53DBA48A)
@@ -384,7 +384,7 @@ I (.\user\inc\iwdg.h)(0x6785E130)
 I (.\user\inc\bs8116.h)(0x67864F50)
 I (.\user\inc\rtc.h)(0x6788AEEA)
 I (.\user\inc\mg200.h)(0x67906038)
-I (.\user\inc\rc522.h)(0x6795FE3C)
+I (.\user\inc\rc522.h)(0x6796E9A5)
 F (.\user\inc\tim.h)(0x677F441B)()
 F (.\user\src\delay.c)(0x677F6D69)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\Include -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc -I .\user\inc-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.7.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="527" -DSTM32F401xE -DSTM32F401xx -DUSE_STDPERIPH_DRIVER-o .\objects\delay.o --omf_browse .\objects\delay.crf --depend .\objects\delay.d)
 I (.\user\inc\main.h)(0x67959535)
@@ -435,7 +435,7 @@ I (.\user\inc\iwdg.h)(0x6785E130)
 I (.\user\inc\bs8116.h)(0x67864F50)
 I (.\user\inc\rtc.h)(0x6788AEEA)
 I (.\user\inc\mg200.h)(0x67906038)
-I (.\user\inc\rc522.h)(0x6795FE3C)
+I (.\user\inc\rc522.h)(0x6796E9A5)
 F (.\user\inc\delay.h)(0x677F341F)()
 F (.\user\inc\door.h)(0x677F8377)()
 F (.\user\src\door.c)(0x677F8A1A)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\Include -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc -I .\user\inc-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.7.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="527" -DSTM32F401xE -DSTM32F401xx -DUSE_STDPERIPH_DRIVER-o .\objects\door.o --omf_browse .\objects\door.crf --depend .\objects\door.d)
@@ -487,7 +487,7 @@ I (.\user\inc\iwdg.h)(0x6785E130)
 I (.\user\inc\bs8116.h)(0x67864F50)
 I (.\user\inc\rtc.h)(0x6788AEEA)
 I (.\user\inc\mg200.h)(0x67906038)
-I (.\user\inc\rc522.h)(0x6795FE3C)
+I (.\user\inc\rc522.h)(0x6796E9A5)
 F (.\user\src\at24cxx.c)(0x6780B8DF)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\Include -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc -I .\user\inc-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.7.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="527" -DSTM32F401xE -DSTM32F401xx -DUSE_STDPERIPH_DRIVER-o .\objects\at24cxx.o --omf_browse .\objects\at24cxx.crf --depend .\objects\at24cxx.d)
 I (.\user\inc\main.h)(0x67959535)
 I (.\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\stm32f4xx.h)(0x53DBA48A)
@@ -537,7 +537,7 @@ I (.\user\inc\iwdg.h)(0x6785E130)
 I (.\user\inc\bs8116.h)(0x67864F50)
 I (.\user\inc\rtc.h)(0x6788AEEA)
 I (.\user\inc\mg200.h)(0x67906038)
-I (.\user\inc\rc522.h)(0x6795FE3C)
+I (.\user\inc\rc522.h)(0x6796E9A5)
 F (.\user\inc\at24cxx.h)(0x678F02AA)()
 F (.\user\src\w25q64.c)(0x67809625)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\Include -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc -I .\user\inc-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.7.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="527" -DSTM32F401xE -DSTM32F401xx -DUSE_STDPERIPH_DRIVER-o .\objects\w25q64.o --omf_browse .\objects\w25q64.crf --depend .\objects\w25q64.d)
 I (.\user\inc\main.h)(0x67959535)
@@ -588,7 +588,7 @@ I (.\user\inc\iwdg.h)(0x6785E130)
 I (.\user\inc\bs8116.h)(0x67864F50)
 I (.\user\inc\rtc.h)(0x6788AEEA)
 I (.\user\inc\mg200.h)(0x67906038)
-I (.\user\inc\rc522.h)(0x6795FE3C)
+I (.\user\inc\rc522.h)(0x6796E9A5)
 F (.\user\inc\w25q64.h)(0x6790D36F)()
 F (.\user\src\lcd.c)(0x6789000B)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\Include -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc -I .\user\inc-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.7.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="527" -DSTM32F401xE -DSTM32F401xx -DUSE_STDPERIPH_DRIVER-o .\objects\lcd.o --omf_browse .\objects\lcd.crf --depend .\objects\lcd.d)
 I (.\user\inc\main.h)(0x67959535)
@@ -639,7 +639,7 @@ I (.\user\inc\iwdg.h)(0x6785E130)
 I (.\user\inc\bs8116.h)(0x67864F50)
 I (.\user\inc\rtc.h)(0x6788AEEA)
 I (.\user\inc\mg200.h)(0x67906038)
-I (.\user\inc\rc522.h)(0x6795FE3C)
+I (.\user\inc\rc522.h)(0x6796E9A5)
 F (.\user\inc\lcd.h)(0x6788CC64)()
 F (.\user\src\font.c)(0x678A1FBE)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\Include -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc -I .\user\inc-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.7.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="527" -DSTM32F401xE -DSTM32F401xx -DUSE_STDPERIPH_DRIVER-o .\objects\font.o --omf_browse .\objects\font.crf --depend .\objects\font.d)
 I (.\user\inc\main.h)(0x67959535)
@@ -690,10 +690,10 @@ I (.\user\inc\iwdg.h)(0x6785E130)
 I (.\user\inc\bs8116.h)(0x67864F50)
 I (.\user\inc\rtc.h)(0x6788AEEA)
 I (.\user\inc\mg200.h)(0x67906038)
-I (.\user\inc\rc522.h)(0x6795FE3C)
+I (.\user\inc\rc522.h)(0x6796E9A5)
 F (.\user\inc\font.h)(0x6788C11F)()
 F (.\user\src\systemPic.c)(0x6784B55E)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\Include -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc -I .\user\inc-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.7.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="527" -DSTM32F401xE -DSTM32F401xx -DUSE_STDPERIPH_DRIVER-o .\objects\systempic.o --omf_browse .\objects\systempic.crf --depend .\objects\systempic.d)
-F (.\user\src\function.c)(0x6795E70B)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\Include -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc -I .\user\inc-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.7.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="527" -DSTM32F401xE -DSTM32F401xx -DUSE_STDPERIPH_DRIVER-o .\objects\function.o --omf_browse .\objects\function.crf --depend .\objects\function.d)
+F (.\user\src\function.c)(0x6796D9F3)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\Include -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc -I .\user\inc-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.7.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="527" -DSTM32F401xE -DSTM32F401xx -DUSE_STDPERIPH_DRIVER-o .\objects\function.o --omf_browse .\objects\function.crf --depend .\objects\function.d)
 I (.\user\inc\main.h)(0x67959535)
 I (.\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\stm32f4xx.h)(0x53DBA48A)
 I (.\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\Include\core_cm4.h)(0x53C7D532)
@@ -742,7 +742,7 @@ I (.\user\inc\iwdg.h)(0x6785E130)
 I (.\user\inc\bs8116.h)(0x67864F50)
 I (.\user\inc\rtc.h)(0x6788AEEA)
 I (.\user\inc\mg200.h)(0x67906038)
-I (.\user\inc\rc522.h)(0x6795FE3C)
+I (.\user\inc\rc522.h)(0x6796E9A5)
 F (.\user\inc\function.h)(0x6790CFAA)()
 F (.\user\src\voice.c)(0x6785DB70)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\Include -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc -I .\user\inc-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.7.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="527" -DSTM32F401xE -DSTM32F401xx -DUSE_STDPERIPH_DRIVER-o .\objects\voice.o --omf_browse .\objects\voice.crf --depend .\objects\voice.d)
 I (.\user\inc\main.h)(0x67959535)
@@ -793,7 +793,7 @@ I (.\user\inc\iwdg.h)(0x6785E130)
 I (.\user\inc\bs8116.h)(0x67864F50)
 I (.\user\inc\rtc.h)(0x6788AEEA)
 I (.\user\inc\mg200.h)(0x67906038)
-I (.\user\inc\rc522.h)(0x6795FE3C)
+I (.\user\inc\rc522.h)(0x6796E9A5)
 F (.\user\inc\voice.h)(0x6785D908)()
 F (.\user\src\iwdg.c)(0x678DE30E)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\Include -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc -I .\user\inc-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.7.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="527" -DSTM32F401xE -DSTM32F401xx -DUSE_STDPERIPH_DRIVER-o .\objects\iwdg.o --omf_browse .\objects\iwdg.crf --depend .\objects\iwdg.d)
 I (.\user\inc\main.h)(0x67959535)
@@ -844,7 +844,7 @@ I (.\user\inc\iwdg.h)(0x6785E130)
 I (.\user\inc\bs8116.h)(0x67864F50)
 I (.\user\inc\rtc.h)(0x6788AEEA)
 I (.\user\inc\mg200.h)(0x67906038)
-I (.\user\inc\rc522.h)(0x6795FE3C)
+I (.\user\inc\rc522.h)(0x6796E9A5)
 F (.\user\inc\iwdg.h)(0x6785E130)()
 F (.\user\src\bs8116.c)(0x678710AC)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\Include -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc -I .\user\inc-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.7.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="527" -DSTM32F401xE -DSTM32F401xx -DUSE_STDPERIPH_DRIVER-o .\objects\bs8116.o --omf_browse .\objects\bs8116.crf --depend .\objects\bs8116.d)
 I (.\user\inc\main.h)(0x67959535)
@@ -895,7 +895,7 @@ I (.\user\inc\iwdg.h)(0x6785E130)
 I (.\user\inc\bs8116.h)(0x67864F50)
 I (.\user\inc\rtc.h)(0x6788AEEA)
 I (.\user\inc\mg200.h)(0x67906038)
-I (.\user\inc\rc522.h)(0x6795FE3C)
+I (.\user\inc\rc522.h)(0x6796E9A5)
 F (.\user\inc\bs8116.h)(0x67864F50)()
 F (.\user\src\rtc.c)(0x6788AA2B)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\Include -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc -I .\user\inc-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.7.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="527" -DSTM32F401xE -DSTM32F401xx -DUSE_STDPERIPH_DRIVER-o .\objects\rtc.o --omf_browse .\objects\rtc.crf --depend .\objects\rtc.d)
 I (.\user\inc\main.h)(0x67959535)
@@ -946,7 +946,7 @@ I (.\user\inc\iwdg.h)(0x6785E130)
 I (.\user\inc\bs8116.h)(0x67864F50)
 I (.\user\inc\rtc.h)(0x6788AEEA)
 I (.\user\inc\mg200.h)(0x67906038)
-I (.\user\inc\rc522.h)(0x6795FE3C)
+I (.\user\inc\rc522.h)(0x6796E9A5)
 F (.\user\inc\rtc.h)(0x6788AEEA)()
 F (.\user\src\mg200.c)(0x679090B1)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\Include -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc -I .\user\inc-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.7.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="527" -DSTM32F401xE -DSTM32F401xx -DUSE_STDPERIPH_DRIVER-o .\objects\mg200.o --omf_browse .\objects\mg200.crf --depend .\objects\mg200.d)
 I (.\user\inc\main.h)(0x67959535)
@@ -997,9 +997,9 @@ I (.\user\inc\iwdg.h)(0x6785E130)
 I (.\user\inc\bs8116.h)(0x67864F50)
 I (.\user\inc\rtc.h)(0x6788AEEA)
 I (.\user\inc\mg200.h)(0x67906038)
-I (.\user\inc\rc522.h)(0x6795FE3C)
+I (.\user\inc\rc522.h)(0x6796E9A5)
 F (.\user\inc\mg200.h)(0x67906038)()
-F (.\user\src\rc522.c)(0x6795FFA8)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\Include -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc -I .\user\inc-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.7.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="527" -DSTM32F401xE -DSTM32F401xx -DUSE_STDPERIPH_DRIVER-o .\objects\rc522.o --omf_browse .\objects\rc522.crf --depend .\objects\rc522.d)
+F (.\user\src\rc522.c)(0x6796F23D)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\Include -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc -I .\user\inc-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.7.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="527" -DSTM32F401xE -DSTM32F401xx -DUSE_STDPERIPH_DRIVER-o .\objects\rc522.o --omf_browse .\objects\rc522.crf --depend .\objects\rc522.d)
 I (.\user\inc\main.h)(0x67959535)
 I (.\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\stm32f4xx.h)(0x53DBA48A)
 I (.\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\Include\core_cm4.h)(0x53C7D532)
@@ -1048,8 +1048,8 @@ I (.\user\inc\iwdg.h)(0x6785E130)
 I (.\user\inc\bs8116.h)(0x67864F50)
 I (.\user\inc\rtc.h)(0x6788AEEA)
 I (.\user\inc\mg200.h)(0x67906038)
-I (.\user\inc\rc522.h)(0x6795FE3C)
-F (.\user\inc\rc522.h)(0x6795FE3C)()
+I (.\user\inc\rc522.h)(0x6796E9A5)
+F (.\user\inc\rc522.h)(0x6796E9A5)()
 F (.\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\src\misc.c)(0x53DBB016)(--c99 --gnu -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\Include -I .\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc -I .\user\inc-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.7.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="527" -DSTM32F401xE -DSTM32F401xx -DUSE_STDPERIPH_DRIVER-o .\objects\misc.o --omf_browse .\objects\misc.crf --depend .\objects\misc.d)
 I (.\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\STM32F4xx_StdPeriph_Driver\inc\misc.h)(0x53DBAFAE)
 I (.\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\Libraries\CMSIS\stm32f4xx.h)(0x53DBA48A)

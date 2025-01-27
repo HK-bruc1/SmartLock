@@ -1023,7 +1023,7 @@ void rfid_page(u8 key)
 	if(ad_flag)
 	{
 		//串口上位机显示
-		printf("\r\n卡片管理界面：\r\n");
+		printf("\r\n卡片管理界面:\r\n");
 		printf("【1】注册卡片\r\n");
 		printf("【2】删除指定ID卡片\r\n");
 		printf("【3】删除所有卡片\r\n");

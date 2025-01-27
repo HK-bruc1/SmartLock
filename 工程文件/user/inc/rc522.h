@@ -197,5 +197,6 @@ char MFRC522_Write(unsigned char addr,unsigned char *pData);
 
 //²âÊÔº¯Êı
 unsigned char Test_MFRC522();
+void Test_ChangeSector15Password();
 
 #endif

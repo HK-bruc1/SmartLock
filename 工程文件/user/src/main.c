@@ -114,7 +114,7 @@ int main (void){
 		}
 		
 
-
+		tim5Delay_Ms(500);
 	}
 	return 1;
 }
