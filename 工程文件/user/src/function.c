@@ -1042,18 +1042,18 @@ void rfid_page(u8 key)
 		LCD_dis(145,220,"【#】上一级",LIGHTBLUE,0,0xff,16);
 		
 		
-		// //判断是不是第一次进入卡片管理界面，决定是否将9个卡片的二维数组的初始值写入到AT24C04中
-		// //10号地址存首次开机标志，20号地址存首次打开指纹管理界面，21~29号地址存指纹ID信息
-		// //首次进入卡片管理界面标志可以存在30号地址，卡片ID信息二维数组[9][4]
-		// at24c0x_read_byte(30,&open_flag);
-		// if(open_flag != OPEN_FLAG)
-		// {
-		// 	//把原始数组存储到AT24中,使用0xff作为初始无效值
-		// 	memset(picc,0xff,sizeof(picc));
-		// 	AT24C0x_write_bytes(31,sizeof(picc),picc,AT24C04);
-		// 	//把第一次进入标志位写入到AT(板子上是AT24C04)
-		// 	at24c0x_write_byte(30,OPEN_FLAG);
-		// }
+		//判断是不是第一次进入卡片管理界面，决定是否将9个卡片的UID二维数组的初始值写入到AT24C04中
+		//10号地址存首次开机标志，20号地址存首次打开指纹管理界面，21~29号地址存指纹ID信息
+		//首次进入卡片管理界面标志可以存在30号地址，后续地址存卡片UID信息二维数组[9][4]
+		at24c0x_read_byte(30,&open_flag);
+		if(open_flag != OPEN_FLAG)
+		{
+			//把原始数组存储到AT24中,使用0xff作为初始无效值
+			memset(picc,0xff,sizeof(picc));
+			AT24C0x_write_bytes(31,sizeof(picc),picc,AT24C04);
+			//把第一次进入标志位写入到AT(板子上是AT24C04)
+			at24c0x_write_byte(30,OPEN_FLAG);
+		}
 
 		ad_flag = 0;
 	}
@@ -1085,8 +1085,11 @@ void picc_user_page(u8 key)
 	u8 picc_i,picc_j;
 	//打印卡片ID编号坐标
 	static u16 x;
-	static u8 picc_cont = 0;
+	//用户已经使用ID数量
+	static u8 picc_count = 0;
 	u8 sta;
+	//是否已经注册的标识位
+	u8 login_flag = 1;
 
 	
 	//执行一次
@@ -1107,80 +1110,116 @@ void picc_user_page(u8 key)
 		LCD_dis(150,220,"上一级【#】",LIGHTBLUE,0,0xff,16);
 
 
-		// //从AT24中读出卡片ID数据到数组中
-		// AT24C0x_read_bytes(31,sizeof(picc),picc);
-		// //打印已经注册的卡片ID编号
-		// x = 30;
-		// picc_cont = 0;
-		// //遍历卡片取出有效卡片
-		// for(picc_i=0;picc_i<9;picc_i++)
-		// {
-		// 	for(picc_j=0;picc_j<4;picc_j++)
-		// 	{
-		// 		//只要有卡片ID数据，那么对应外层9个元素中的四个小元素不可能全是0xff，
-		// 		if(picc[picc_i][picc_j] != 0xff)
-		// 		{
-		// 			LCD_dis_ch(x,80,picc_i+48,LIGHTBLUE,0,0xff,32);
-		// 			picc_cont++;
-		// 			x+=20;
-		// 			break;
-		// 		}
-		// 	}
-		// }
-		// //已经存在9个卡片，则提示
-		// if(picc_cont == 9)
-		// {
-		// 	LCD_dis(40,95,"卡片数量注册已达上限",RED,0,0xff,16);
+		//从AT24中读出卡片ID数据到二维数组中
+		AT24C0x_read_bytes(31,sizeof(picc),picc);
+		x = 30;
+		picc_count = 0;
+		//遍历二维数组取出有效卡片id，打印已经注册的卡片ID编号
+		for(picc_i=0;picc_i<9;picc_i++)
+		{
+			for(picc_j=0;picc_j<4;picc_j++)
+			{
+				//只要有卡片UID数据，那么对应外层9个元素中的四个小元素不可能全是0xff
+				//默认是没有赋值是0xff,遍历每一个用户ID下的卡片UID，四个字节只要有一个不是0xff,就代表这个用户ID有卡片了
+				//把这个用户ID打出来
+				if(picc[picc_i][picc_j] != 0xff)
+				{	
+					//显示卡片ID编号1~9，图片显示需要转换一下，不然显示的是0~8
+					LCD_dis_ch(x,80,picc_i+48+1,LIGHTBLUE,0,0xff,32);
+					picc_count++;
+					x+=20;
+					break;
+				}
+			}
+		}
+		//已经存在9个卡片（后自增多加了一个数），则提示
+		if(picc_count == 9)
+		{
+			LCD_dis(30,170,"注册已达上限",RED,0,0xff,32);
 			
-		// }
+		}else {
+			//每一次刷新进来，没有超过数量就播报
+			voice(PUTCARD);
+		}
 
 		ad_flag = 0;
 	}
 
 
-	// //如果还可以注册，就找到要注册卡片ID数据对应的二维数组下标
-	// if(picc_cont<9)
-	// {
-	// 	//picc_id的值从哪里拿？？？？？
-	// 	sta = WriteCardData(1,picc_id,picc_id);
-	// 	if(sta == MI_OK)
-	// 	{
-	// 		for(picc_i=0;picc_i<9;picc_i++)
-	// 		{
-	// 			for(picc_j=0;picc_j<4;picc_j++)
-	// 			{	
-	// 				//如果有一个不是0xff就代表这个ID空间被使用了
-	// 				if(picc[picc_i][picc_j] != 0xff)
-	// 				{
-	// 					break;
-	// 				}
-	// 			}
+	//如果还可以注册，就找到要注册卡片ID数据对应的二维数组下标
+	if(picc_count<9)
+	{
+		//picc_id的值由函数传递出来，就是读卡拿到的卡片序列号，这个必须在前面，不然拿不到卡片序列号
+		sta = WriteCardData(62,picc_data,picc_id);
+		if(sta == MI_OK)
+		{
+			//先遍历二维数据，检查此卡片有没有在本机注册过，如果已经注册过，就不用再注册了
+			for(picc_i=0;picc_i<9;picc_i++)
+			{
+				//序列号对比成功的字节数量
+				u8 temp_count = 0;
+				for(picc_j=0;picc_j<4;picc_j++)
+				{
+					//先判断此卡片有没有在本机注册过
+					if(picc[picc_i][picc_j] == picc_id[picc_j])
+					{
+						//卡片的四个字节序号全部相等，说明已经注册过，跳出循环
+						temp_count++;
+					}
+				}
 
-	// 			//一个空间都是0xff的话就代表可以使用，跳出循环找到一个可用空间
-	// 			if(picc_j == 4)
-	// 			{
-	// 				break;
-	// 			}
-				
-	// 		}
+				//如果四个字节都相等，说明已经注册过，跳出循环
+				if(temp_count == 4)
+				{
+					//跳出循环,不用找了,后续步骤都不用执行了
+					login_flag = 0;
+					printf("此卡片已经注册！卡片块内数据已经写入，但是本系统没有记录\r\n");
+					voice(CARD_REGISTERED);
+					break;
+				}
+			}
 
-	// 		//picc_i就是要存储的元素下标，没有定义在循环中，所以下标可以用
-	// 		//注册完了再一次进入注册函数时，下标变量会重新定义
-	// 		for(picc_j=0;picc_j<4;picc_j++)
-	// 		{
-	// 			//读卡拿到的四个字节的卡片序列号，存储到数组中
-	// 			picc[picc_i][picc_j] = picc_id[picc_j];
-	// 		}
-	// 		LCD_dis_ch(x,80,picc_i+48,LIGHTBLUE,0,0xff,32);
-	// 		x+=20;
-	// 		picc_cont++;
-	// 		if(picc_cont == 9)
-	// 		{
-	// 			LCD_dis(40,95,"卡片数量已达上限",RED,0,0xff,16);
-	// 		}
-	// 	}
-	// }
-	// //存储卡片ID后建议立即写入AT24C0x
+			if(login_flag == 1){
+				//计算出可以用的ID下标
+				for(picc_i=0;picc_i<9;picc_i++)
+				{
+					for(picc_j=0;picc_j<4;picc_j++)
+					{	
+						//如果有一个不是0xff就代表这个ID空间被使用了
+						if(picc[picc_i][picc_j] != 0xff)
+						{
+							//跳出内层循环进入下一个循环
+							break;
+						}
+					}
+					//一个空间四个小元素都是0xff的话就代表可以使用，跳出循环找到一个可用空间
+					if(picc_j == 4)
+					{
+						//跳出外层循环
+						break;
+					}
+					
+				}
+
+				//picc_i就是要存储的元素下标，没有定义在循环中，所以下标可以用
+				//注册完了再一次进入注册函数时，下标变量会重新定义
+				for(picc_j=0;picc_j<4;picc_j++)
+				{
+					//读卡拿到的四个字节的卡片序列号，存储到数组中
+					picc[picc_i][picc_j] = picc_id[picc_j];
+				}
+
+				//如果注册数量达到上限，会在重新刷入页面时提示
+
+				//将该用户的卡片序号存入AT24C0x
+				AT24C0x_write_bytes(31,sizeof(picc),picc,AT24C04);
+				voice(SETTING_SUCCESS);
+				//重新刷新该界面打印新用户ID编号
+				ad_flag = 1;
+			}
+		}
+	}
+
 
 
 	
@@ -1198,11 +1237,18 @@ void picc_user_page(u8 key)
 *函数功能  :删除指定卡片界面函数
 *函数参数  :u8 key
 *函数返回值:无
-*函数描述  :page_mode = 52
+*函数描述  :page_mode = 52,所谓删除就是把本机记录删除即可，因为开门对比需要本机记录
 ************************************************/
 void erase_user_picc_page(u8 key)
 {
 	static u8 ad_flag = 1;
+	u8 picc_i,picc_j;
+	//打印卡片ID编号坐标
+	static u16 x;
+	//用户已经使用ID数量
+	static u8 picc_count = 0;
+
+
 	//执行一次
 	if(ad_flag)
 	{
@@ -1217,10 +1263,57 @@ void erase_user_picc_page(u8 key)
 		LCD_dis(24,48,"删除指定卡片",LIGHTBLUE,0,0xff,32);
 		LCD_dis(0,220,"【*】主界面",LIGHTBLUE,0,0xff,16);
 		LCD_dis(150,220,"上一级【#】",LIGHTBLUE,0,0xff,16);
-		
-		
+		voice(DELETE_ASSIGN_CARD);
 
+
+		//从AT24中读出卡片ID数据到二维数组中
+		AT24C0x_read_bytes(31,sizeof(picc),picc);
+		x = 30;
+		picc_count = 0;
+
+
+		//遍历二维数组取出有效卡片id，打印已经注册的卡片ID编号
+		for(picc_i=0;picc_i<9;picc_i++)
+		{
+			for(picc_j=0;picc_j<4;picc_j++)
+			{
+				//只要有卡片UID数据，那么对应外层9个元素中的四个小元素不可能全是0xff
+				//默认是没有赋值是0xff,遍历每一个用户ID下的卡片UID，四个字节只要有一个不是0xff,就代表这个用户ID有卡片了
+				//把这个用户ID打出来
+				if(picc[picc_i][picc_j] != 0xff)
+				{	
+					//显示卡片ID编号1~9，图片显示需要转换一下，不然显示的是0~8
+					LCD_dis_ch(x,80,picc_i+48+1,LIGHTBLUE,0,0xff,32);
+					picc_count++;
+					x+=20;
+					break;
+				}
+			}
+		}
+		
 		ad_flag = 0;
+	}
+
+	//能删除的前提是有用户卡片注册记录
+	if(picc_count>0){
+		//删除指定ID用户的卡片，key为有效值才执行删除函数
+		if(key != 0xff && key != '#' && key != '*'){
+			//按键值与用户ID存储位置的转换，把某一个用户ID下的卡片记录删除
+			for(int i=0;i<4;i++){
+				picc[key-48-1][i] = 0xff;
+			}
+			//再存入AT24C0x中
+			AT24C0x_write_bytes(31,sizeof(picc),picc,AT24C04);
+			voice(SETTING_SUCCESS);
+			picc_count--;
+
+			//刷新页面打印新的有效ID
+			ad_flag = 1;
+		}
+
+	}else {
+		printf("没有用户注册记录,请先注册卡片\r\n");
+		LCD_dis(30,170,"请先注册卡片",RED,0,0xff,32);
 	}
 	
 	
@@ -1245,6 +1338,8 @@ void erase_user_picc_page(u8 key)
 void erase_picc_all_page(u8 key)
 {
 	static u8 ad_flag = 1;
+
+
 	//执行一次
 	if(ad_flag)
 	{
@@ -1257,10 +1352,12 @@ void erase_picc_all_page(u8 key)
 		//LCD屏幕显示
 		LCD_dis_pic(0,0,gImage_systemPic);
 		LCD_dis(24,48,"删除所有卡片",LIGHTBLUE,0,0xff,32);
-		LCD_dis(56,85,"确认删除",LIGHTBLUE,0,0xff,16);
+		LCD_dis(56,90,"确认删除",RED,0,0xff,32);
 		LCD_dis_number_pic(96,126,"?",RED,1,gImage_systemPic);
 		LCD_dis(0,220,"确认(*)",LIGHTBLUE,0,0xff,16);
 		LCD_dis(180,220,"取消(#)",LIGHTBLUE,0,0xff,16);
+		voice(DELETE_ALL_CARD);
+
 		
 		ad_flag = 0;
 	}
@@ -1270,8 +1367,11 @@ void erase_picc_all_page(u8 key)
 	
 	if(key == '*')     //确认删除 后 回到上级菜单
 	{
-		//删除的动作
-
+		//删除的动作,就是把本机记录全部清除即可
+		memset(picc,0xff,sizeof(picc));
+		//再存入AT24C0x中
+		AT24C0x_write_bytes(31,sizeof(picc),picc,AT24C04);
+		voice(SETTING_SUCCESS);
 		
 		//回上级菜单
 		page_mode = 5;
@@ -1297,6 +1397,22 @@ void erase_picc_all_page(u8 key)
 void erase_picc_match_page(u8 key)
 {
 	static u8 ad_flag = 1;
+	//打印卡片ID编号坐标
+	static u8 x;
+	//寻卡操作的状态
+	u8 sta;
+	u8 picc_i,picc_j;
+	//用户已经识别成功的ID数量
+	static u8 picc_count = 0;
+	//记录已经识别的卡片ID
+	static u8 picc_idNum[9] = {0};
+	//是否已经达到识别上限的标识位
+	u8 match_flag = 1;
+	//是否已经存入识别列表标志
+	u8 sava_flag = 1;
+	//序列号对比成功的字节数量
+	u8 temp_count = 0;
+
 	
 	//执行一次
 	if(ad_flag)
@@ -1304,21 +1420,140 @@ void erase_picc_match_page(u8 key)
 		//串口上位机显示
 		printf("\r\n识别删除卡片界面\r\n");
 		printf("识别卡片\r\n");
-		printf("【#】取消\r\n");
+		printf("确认(*)\r\n");
+		printf("返回(#)\r\n");
 		
 		//LCD屏幕显示
 		LCD_dis_pic(0,0,gImage_systemPic);//设置图片为背景
 		LCD_dis(25,48,(u8 *)"识别删除卡片",LIGHTBLUE,0,0xff,32);
 		LCD_dis_number_pic(50,120,"P",LGRAY,1,gImage_systemPic);
 		LCD_dis_number_pic(130,120,"Q",LGRAY,1,gImage_systemPic);
-		LCD_dis(160,220,(u8 *)"【#】返回",LIGHTBLUE,0,0xff,16);
+		LCD_dis(0,220,"确认(*)",LIGHTBLUE,0,0xff,16);
+		LCD_dis(180,220,(u8 *)"返回(#)",LIGHTBLUE,0,0xff,16);
+		voice(PUTCARD);
 		
-		
+
+		//从AT24中读出卡片ID数据到二维数组中
+		AT24C0x_read_bytes(31,sizeof(picc),picc);
+		x = 30;
+		picc_count = 0;
+		//把识别列表重新初始化无效值，等待重新识别
+		//识别到一半出去了，再进来需要重新识别
+		for(int l=0;l<9;l++){
+			picc_idNum[l] = 0;
+		}
+
 		ad_flag = 0;
 	}
+
+
+	//识别成功的数量已经达到上限9个，不能再识别
+	if(picc_count==9){
+		printf("识别已达上限,请先删除\r\n");
+		match_flag = 0;
+	}
+
+	if(match_flag==1){
+		sta = MatchCard(picc_id);
+		if(sta == MI_OK){
+			//此时已经找到卡片并已经返回了序列号，开始遍历二维数组查询用户对应的卡片ID
+			for(picc_i=0;picc_i<9;picc_i++)
+			{
+				//序列号对比成功的字节数量
+				temp_count = 0;
+				for(picc_j=0;picc_j<4;picc_j++)
+				{
+					//先判断此卡片
+					if(picc[picc_i][picc_j] == picc_id[picc_j])
+					{
+						//卡片的四个字节序号全部相等，说明已经注册过
+						temp_count++;
+					}
+				}
+
+				//如果四个字节都相等，说明已经注册过，跳出循环
+				if(temp_count == 4)
+				{
+					//跳出循环,不用找了,后续步骤都不用执行了
+					printf("此卡片的注册ID为%d\r\n",picc_i+1);
+					break;
+				}
+			}
+			//此卡片注册过才显示
+			if(temp_count == 4){
+				//先判断之前有没有存过到识别列表中，如果之前有，就不用再存了
+				//无效值也不会符合条件
+				for(int i=0;i<sizeof(picc_idNum);i++){
+					if(picc_idNum[i] == (picc_i+1)){
+						sava_flag = 0;
+					}
+				}
+				//之前没有存过，才存进去
+				if(sava_flag == 1){
+					//屏幕显示找到的卡片注册的ID
+					//显示卡片ID编号1~9，图片显示需要转换一下，不然显示的是0~8
+					LCD_dis_ch(x,80,picc_i+48+1,LIGHTBLUE,0,0xff,32);
+					//识别数量+1,存入临时缓冲区,把ID存入进去
+					picc_idNum[picc_count] = picc_i+1;
+					picc_count++;
+					x+=20;
+					voice(Di);
+				}
+			}else {
+				printf("此卡片未注册,请先注册\r\n");
+			}
+			
+		}
+	}
+	
 	
 
 	
+	if(key == '*')     //确认删除 后 回到上级菜单
+	{
+		//上面存入识别列表时已经做了反重复，这里没必要，但我不想改了，累
+		//删除的动作,从缓冲区拿到所有已经识别到的id，然后删除二维数组中的数据，再存入AT24C0x中
+		//创建一个数组记录已删除的ID,初始化为0,这是为了保证删除的时候，不会重复删除，只在删除时使用
+		u8 deleted_ids[9] = {0};  //最多有9个卡片ID被删除1~9
+		u8 deleted_count = 0;
+		//遍历缓冲区识别成功的卡片ID，去二维数组相应位置删除数据
+		for(int j=0;j<9;j++){
+			//检查当前ID是否已经被删除过,下一个识别成功的ID检测时，标志会重置
+			u8 already_deleted = 0;
+			for(int i = 0; i < 9; i++) {
+				//假设没有识别直接按删除，那么都相等，也不会删除
+				//识别数组没有满，余下的ID都为0，也不会删除
+				if(deleted_ids[i] == picc_idNum[j]) {
+					//这个ID已经被删除过了
+					already_deleted = 1;
+					//跳出这个校验
+					break;
+				}
+			}
+
+			//如果ID没有被删除过,则进行删除操作
+			if(!already_deleted){
+				//如果没有被删除过,去二维数组中对应位置置无效值
+				for(int i=0;i<4;i++){
+					picc[picc_idNum[j]-1][i] = 0xff;
+				}
+
+				//记录已删除的ID
+				deleted_ids[deleted_count] = picc_idNum[j];
+				deleted_count++;
+			}
+		}
+
+		//二维数组全部修改好后再存入AT24C0x中
+		//没有识别直接按的话，就是读出来，没有修改就存入
+		AT24C0x_write_bytes(31,sizeof(picc),picc,AT24C04);
+		voice(SETTING_SUCCESS);
+		
+
+		//回上级菜单
+		page_mode = 5;
+		ad_flag=1;
+	}
 	
 	else if(key == '#')   //取消会到上级菜单
 	{

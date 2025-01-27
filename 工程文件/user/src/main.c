@@ -31,12 +31,18 @@ volatile u8 mg200_rec_flag = 0;
 u8 mg200_id[9];
 
 
+
 //RC522
-u8 picc_passward[6]={0xff,0xff,0xff,0xff,0xff,0xff}; //卡密码-初始密码--白卡的出厂密码
+u8 picc_passward[6]={0xff,0xff,0xff,0xff,0xff,0xff}; //卡密码-初始密码--白卡的出厂密码，用于验证
+
 //定义一个二维数组，设定一共可以注册9个卡片，二维数组9个元素，每个元素卡序号4个字节数据
 u8 picc[9][4];
-//卡片ID
-u8 picc_id[16];
+
+//待写入卡片块内数据
+u8 picc_data[16] = {0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff};
+
+//卡片序列号
+u8 picc_id[4];
 
 
 
@@ -113,8 +119,6 @@ int main (void){
 
 		}
 		
-
-		tim5Delay_Ms(500);
 	}
 	return 1;
 }

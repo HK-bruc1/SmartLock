@@ -199,4 +199,9 @@ char MFRC522_Write(unsigned char addr,unsigned char *pData);
 unsigned char Test_MFRC522();
 void Test_ChangeSector15Password();
 
+//ÒµÎñº¯Êý
+u8 WriteCardData(u8 addr,u8 *data,u8 *pSnr);
+u8 MatchCard(u8 *pSnr);
+
+
 #endif

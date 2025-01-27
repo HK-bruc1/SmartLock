@@ -27,10 +27,10 @@ Project File Date:  01/24/2025
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 6 (build 750)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'Target 1'
-compiling rc522.c...
+compiling function.c...
 .\user\inc\led.h(15): warning:  #1-D: last line of file ends without a newline
   #endif
-.\user\inc\main.h(69): warning:  #1-D: last line of file ends without a newline
+.\user\inc\main.h(70): warning:  #1-D: last line of file ends without a newline
   #endif
 .\user\inc\usart.h(13): warning:  #1-D: last line of file ends without a newline
   #endif
@@ -66,25 +66,45 @@ compiling rc522.c...
   unsigned char Test_MFRC522();
 .\user\inc\rc522.h(200): warning:  #1295-D: Deprecated declaration Test_ChangeSector15Password - give arg types
   void Test_ChangeSector15Password();
-.\user\inc\rc522.h(202): warning:  #1-D: last line of file ends without a newline
+.\user\inc\rc522.h(207): warning:  #1-D: last line of file ends without a newline
   #endif
-.\user\inc\main.h(69): warning:  #1-D: last line of file ends without a newline
+.\user\inc\main.h(70): warning:  #1-D: last line of file ends without a newline
   #endif
-user\src\rc522.c(344): warning:  #550-D: variable "status"  was set but never used
-  	char status;
-user\src\rc522.c(710): warning:  #177-D: variable "pass_A_new"  was declared but never referenced
-          unsigned char pass_A_new[6] = {0x12, 0x12, 0x12, 0x12, 0x12, 0x12};
-user\src\rc522.c(728): warning:  #1-D: last line of file ends without a newline
-  }
-user\src\rc522.c(632): warning:  #177-D: variable "pass_Apro"  was declared but never referenced
-      unsigned char pass_Apro[6] = {0x12, 0x12, 0x12, 0x12, 0x12, 0x12};//复位用于测试的密码A，记得修改
-user\src\rc522.c(634): warning:  #177-D: variable "pass_new"  was declared but never referenced
-      const unsigned char pass_new[16] = { // 新的扇区尾块数据
-user\src\rc522.c: 26 warnings, 0 errors
+user\src\function.c(39): warning:  #177-D: variable "color_flag"  was declared but never referenced
+      static int color_flag = 0;
+user\src\function.c(155): warning:  #167-D: argument of type "const unsigned char *" is incompatible with parameter of type "u8 *"
+                  LCD_xy_clear(45-8,200-8,166,16,0xffff,1,gImage_systemPic);
+user\src\function.c(165): warning:  #167-D: argument of type "const unsigned char *" is incompatible with parameter of type "u8 *"
+                  LCD_xy_clear(70,130,100,16,0xffff,1,gImage_systemPic);
+user\src\function.c(443): warning:  #177-D: variable "y"  was declared but never referenced
+  	static u8 x=45,y=95;
+user\src\function.c(635): warning:  #260-D: explicit type is missing ("int" assumed)
+  	static mg200_register_sta = 1;
+user\src\function.c(740): warning:  #260-D: explicit type is missing ("int" assumed)
+  	static mg200_erase_sta = 1;
+user\src\function.c(745): warning:  #177-D: variable "mg200_ID"  was declared but never referenced
+  	u8 mg200_ID;
+user\src\function.c(1053): warning:  #167-D: argument of type "u8 (*)[4]" is incompatible with parameter of type "u8 *"
+  			AT24C0x_write_bytes(31,sizeof(picc),picc,AT24C04);
+user\src\function.c(1114): warning:  #167-D: argument of type "u8 (*)[4]" is incompatible with parameter of type "u8 *"
+  		AT24C0x_read_bytes(31,sizeof(picc),picc);
+user\src\function.c(1215): warning:  #167-D: argument of type "u8 (*)[4]" is incompatible with parameter of type "u8 *"
+  				AT24C0x_write_bytes(31,sizeof(picc),picc,AT24C04);
+user\src\function.c(1270): warning:  #167-D: argument of type "u8 (*)[4]" is incompatible with parameter of type "u8 *"
+  		AT24C0x_read_bytes(31,sizeof(picc),picc);
+user\src\function.c(1306): warning:  #167-D: argument of type "u8 (*)[4]" is incompatible with parameter of type "u8 *"
+  			AT24C0x_write_bytes(31,sizeof(picc),picc,AT24C04);
+user\src\function.c(1373): warning:  #167-D: argument of type "u8 (*)[4]" is incompatible with parameter of type "u8 *"
+  		AT24C0x_write_bytes(31,sizeof(picc),picc,AT24C04);
+user\src\function.c(1437): warning:  #167-D: argument of type "u8 (*)[4]" is incompatible with parameter of type "u8 *"
+  		AT24C0x_read_bytes(31,sizeof(picc),picc);
+user\src\function.c(1549): warning:  #167-D: argument of type "u8 (*)[4]" is incompatible with parameter of type "u8 *"
+  		AT24C0x_write_bytes(31,sizeof(picc),picc,AT24C04);
+user\src\function.c: 36 warnings, 0 errors
 linking...
-Program Size: Code=28506 RO-data=129318 RW-data=216 ZI-data=1856  
+Program Size: Code=29122 RO-data=129278 RW-data=240 ZI-data=1848  
 FromELF: creating hex file...
-".\Objects\smart_lock.axf" - 0 Error(s), 26 Warning(s).
+".\Objects\smart_lock.axf" - 0 Error(s), 36 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -98,7 +118,7 @@ Package Vendor: Keil
   C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.7.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include
 
 <h2>Collection of Component Files used:</h2>
-Build Time Elapsed:  00:00:03
+Build Time Elapsed:  00:00:04
 </pre>
 </body>
 </html>

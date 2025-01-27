@@ -289,6 +289,7 @@ char MFRC522_ToCard(unsigned char Command,
 
 
 
+
 //开启天线  
 //每次启动或关闭天线发射之间应至少有1ms的间隔
 void MFRC522_AntennaOn(void)
@@ -418,14 +419,13 @@ char MFRC522_Anticoll(unsigned char *pSnr)
 
     if (status == MI_OK)
     {
-    	 for (i=0; i<4; i++)
-         {   
-             *(pSnr+i)  = ucComMF522Buf[i];
-             snr_check ^= ucComMF522Buf[i];
-
-         }
-         if (snr_check != ucComMF522Buf[i])
-         {   status = MI_ERR;    }
+        for (i=0; i<4; i++)
+        {   
+        *(pSnr+i)  = ucComMF522Buf[i];
+        snr_check ^= ucComMF522Buf[i];
+        }
+        if (snr_check != ucComMF522Buf[i])
+        {   status = MI_ERR;    }
     }
     
     SetBitMask(CollReg,0x80);
@@ -546,40 +546,148 @@ char MFRC522_Read(unsigned char addr,unsigned char *pData)
 
 
 /////////////////////////////////////////////////////////////////////
-//功    能：写数据到M1卡一块
-//参数说明: addr[IN]：块地址
-//          pData[IN]：写入的数据，16字节
-//返    回: 成功返回MI_OK
-/////////////////////////////////////////////////////////////////////                  
-char MFRC522_Write(unsigned char addr,unsigned char *pData)
+// 函数名称: MFRC522_Write
+// 功能描述: 向M1卡的指定块写入16字节数据，只负责写，不负责验证扇区密码逻辑
+// 输入参数: addr  - 要写入的块地址
+//          pData - 指向要写入的16字节数据的指针
+// 返回值  : MI_OK  - 写入成功
+//          MI_ERR - 写入失败
+/////////////////////////////////////////////////////////////////////
+char MFRC522_Write(unsigned char addr, unsigned char *pData)
 {
-    char status;
-    unsigned int  unLen;
-    unsigned char i,ucComMF522Buf[MAXRLEN]; 
+    char status;                     // 用于存储函数执行状态
+    unsigned int unLen;              // 用于存储接收到的数据长度
+    unsigned char i;                 // 循环计数器
+    unsigned char ucComMF522Buf[MAXRLEN];  // 通信缓冲区
     
-    ucComMF522Buf[0] = PICC_WRITE;
-    ucComMF522Buf[1] = addr;
-    CalulateCRC(ucComMF522Buf,2,&ucComMF522Buf[2]);
+    // 组装写命令帧
+    ucComMF522Buf[0] = PICC_WRITE;  // 写命令
+    ucComMF522Buf[1] = addr;        // 块地址
+    CalulateCRC(ucComMF522Buf,2,&ucComMF522Buf[2]);  // 计算CRC并添加到命令帧末尾
  
+    // 发送写命令并验证卡片应答
     status = MFRC522_ToCard(PCD_TRANSCEIVE,ucComMF522Buf,4,ucComMF522Buf,&unLen);
 
+    // 检查应答状态
+    // 1. status必须为MI_OK
+    // 2. 接收到的数据长度必须为4
+    // 3. 应答的低4位必须为0x0A
     if ((status != MI_OK) || (unLen != 4) || ((ucComMF522Buf[0] & 0x0F) != 0x0A))
-    {   status = MI_ERR;   }
+    {   
+        status = MI_ERR;   
+    }
         
     if (status == MI_OK)
     {
         //memcpy(ucComMF522Buf, pData, 16);
+        // 准备写入数据
+        // 将16字节数据复制到发送缓冲区
         for (i=0; i<16; i++)
-        {    ucComMF522Buf[i] = *(pData+i);   }
-        CalulateCRC(ucComMF522Buf,16,&ucComMF522Buf[16]);
+        {    
+            ucComMF522Buf[i] = *(pData+i);   
+        }
+        CalulateCRC(ucComMF522Buf,16,&ucComMF522Buf[16]);  // 计算数据的CRC值
 
+        // 发送数据块并验证卡片应答
         status = MFRC522_ToCard(PCD_TRANSCEIVE,ucComMF522Buf,18,ucComMF522Buf,&unLen);
+        // 再次检查应答状态
         if ((status != MI_OK) || (unLen != 4) || ((ucComMF522Buf[0] & 0x0F) != 0x0A))
-        {   status = MI_ERR;   }
+        {   
+            status = MI_ERR;   
+        }
     }
     
     return status;
 }
+
+/***********************************************
+*函数名    ：WriteCardData
+*函数功能  ：往卡片的某个块地址写数据（有验证密码逻辑）
+*函数参数  ：u8 addr,u8 *data,u8 *pSnr    
+*函数返回值：u8
+*函数描述  ：块的绝对地址0~63  注意不写到控制块中
+            要写的数据  一定是16个字节
+            pSnr  是卡片序列号，4字节
+***********************************************/
+u8 WriteCardData(u8 addr,u8 *data,u8 *pSnr){
+    u8 pTagType[2] = {0};     //存卡的型号数据
+    /*寻卡*/
+	if(MFRC522_Request(PICC_REQALL,pTagType)  != MI_OK) 
+	{
+        MFRC522_Reset();
+        MFRC522_AntennaOff(); 
+        MFRC522_AntennaOn();
+		return 1;
+	}
+
+	/*防冲撞*/
+    //把卡的序列号保存在pSnr中传递出去
+	if(MFRC522_Anticoll(pSnr)  != MI_OK)
+	{
+		return 2;
+	}
+	
+	/*选卡*/
+	if(MFRC522_SelectTag(pSnr)  != MI_OK)
+	{
+		return 3;
+	}
+
+    //嘟一声
+    voice(Di);
+    /*密码验证*/
+    //数据块与控制块地址关系 = (addr / 4) * 4 + 3
+	if(MFRC522_AuthState(PICC_AUTHENT1A,addr/4*4+3,picc_passward,pSnr) != MI_OK)//验证A密码
+	{
+		printf("密码A对比失败!\r\n");
+		MFRC522_Halt();
+		return 4;
+	}
+    /*写数据*/
+	if(MFRC522_Write(addr,data) != MI_OK)
+	{
+		printf("数据写入失败!\r\n");
+		MFRC522_Halt();
+		return 5;	
+	}
+    /*休眠*/
+	MFRC522_Halt();
+	printf("数据写入成功\r\n");
+
+    return MI_OK;
+}
+
+
+/**
+ * @brief 就是把找寻到的卡片序列号传递出去
+ * 
+ * @param pSnr 
+ */
+u8 MatchCard(u8 *pSnr){
+    u8 pTagType[2] = {0};     //存卡的型号数据
+
+    /*寻卡*/
+	if(MFRC522_Request(PICC_REQALL,pTagType)  != MI_OK) 
+	{
+        MFRC522_Reset();
+        MFRC522_AntennaOff(); 
+        MFRC522_AntennaOn();
+		return 1;
+	}
+
+	/*防冲撞*/
+    //把卡的序列号保存在pSnr中，传递出去
+	if(MFRC522_Anticoll(pSnr)  != MI_OK)
+	{
+		return 2;
+	}
+
+    return MI_OK;
+
+
+}
+
+
 
 
 //测试函数
