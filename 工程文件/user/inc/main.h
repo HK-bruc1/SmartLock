@@ -63,6 +63,7 @@ extern u8 picc_passward[6];
 extern u8 picc[9][4];
 extern u8 picc_data[16];
 extern u8 picc_id[4];
+extern u8 picc_read_data[16];
 
 
 

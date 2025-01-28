@@ -7,6 +7,10 @@ void zk_update(void);
 
 //四种开锁模式
 u8 open_passward(u8 bs8116_key);
+void open_fingerprint(void);
+void open_card(void);
+
+
 
 void main_page(u8 key);
 void admin_page(u8 key);
@@ -23,7 +27,6 @@ void erase_picc_all_page(u8 key);
 void erase_picc_match_page(u8 key);
 void voice_light_page(u8 key);
 void factory_reset_page(u8 key);
-void open_fingerprint(void);
 
 
 #endif

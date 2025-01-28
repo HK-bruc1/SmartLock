@@ -516,33 +516,48 @@ char MFRC522_AuthState(unsigned char auth_mode, unsigned char addr, unsigned cha
 
 
 /////////////////////////////////////////////////////////////////////
-//功    能：读取M1卡一块数据
-//参数说明: addr[IN]：块地址
+// 功    能：读取M1卡一块数据
+// 参数说明: addr[IN]：块地址
 //          pData[OUT]：读出的数据，16字节
-//返    回: 成功返回MI_OK
+// 返    回: 成功返回MI_OK
 ///////////////////////////////////////////////////////////////////// 
-char MFRC522_Read(unsigned char addr,unsigned char *pData)
+char MFRC522_Read(unsigned char addr, unsigned char *pData)
 {
-    char status;
-    unsigned int  unLen;
-    unsigned char i,ucComMF522Buf[MAXRLEN]; 
+    char status;                         // 函数的返回状态变量
+    unsigned int unLen;                  // 用于存储读取的数据长度
+    unsigned char i;                     // 循环计数变量
+    unsigned char ucComMF522Buf[MAXRLEN]; // 存储命令和返回数据的缓冲区
 
-    ucComMF522Buf[0] = PICC_READ;
-    ucComMF522Buf[1] = addr;
-    CalulateCRC(ucComMF522Buf,2,&ucComMF522Buf[2]);
-   
-    status = MFRC522_ToCard(PCD_TRANSCEIVE,ucComMF522Buf,4,ucComMF522Buf,&unLen);
-    if ((status == MI_OK) && (unLen == 0x90))
- //   {   memcpy(pData, ucComMF522Buf, 16);   }
+    // 构造读取指令帧
+    ucComMF522Buf[0] = PICC_READ;        // PICC_READ 指令表示读数据操作
+    ucComMF522Buf[1] = addr;             // 要读取的块地址
+    CalulateCRC(ucComMF522Buf, 2, &ucComMF522Buf[2]); 
+    // 计算 CRC 校验值并存储到缓冲区，长度为 2 字节
+
+    // 发送指令到 RC522 模块，并等待模块返回数据
+    status = MFRC522_ToCard(PCD_TRANSCEIVE, ucComMF522Buf, 4, ucComMF522Buf, &unLen);
+    // PCD_TRANSCEIVE 表示发送数据到卡并接收卡的响应
+    // 发送的缓冲区长度为 4（包含指令、地址和 CRC 校验值）
+    // 返回的数据存储在 ucComMF522Buf 中，数据长度存储在 unLen 中
+
+    // 检查返回状态和数据长度是否符合预期
+    
+    if ((status == MI_OK) && (unLen == 0x90)) // 成功读取到 16 字节数据时
+    //   {   memcpy(pData, ucComMF522Buf, 16);   }
     {
-        for (i=0; i<16; i++)
-        {    *(pData+i) = ucComMF522Buf[i];   }
+        for (i = 0; i < 16; i++)             // 遍历返回的数据
+        {
+            *(pData + i) = ucComMF522Buf[i]; // 将数据存储到用户提供的缓冲区 pData 中
+        }
     }
     else
-    {   status = MI_ERR;   }
-    
-    return status;
+    {
+        status = MI_ERR;                     // 读取失败，返回错误状态
+    }
+
+    return status;                           // 返回函数执行状态
 }
+
 
 
 /////////////////////////////////////////////////////////////////////
@@ -683,7 +698,62 @@ u8 MatchCard(u8 *pSnr){
 	}
 
     return MI_OK;
+}
 
+/**
+ * @brief 读取卡片的扇区指定块数据以及卡片序列号
+ * 
+ * @param addr 
+ * @param data 
+ * @param pSnr 
+ * @return u8 
+ */
+u8 ReadCardData(u8 addr,u8 *data,u8 *pSnr){
+    u8 pTagType[2] = {0};     //存卡的型号数据
+    /*寻卡*/
+	if(MFRC522_Request(PICC_REQALL,pTagType)  != MI_OK) 
+	{
+        MFRC522_Reset();
+        MFRC522_AntennaOff(); 
+        MFRC522_AntennaOn();
+		return 1;
+	}
+
+	/*防冲撞*/
+    //把卡的序列号保存在pSnr中传递出去
+	if(MFRC522_Anticoll(pSnr)  != MI_OK)
+	{
+		return 2;
+	}
+	
+	/*选卡*/
+	if(MFRC522_SelectTag(pSnr)  != MI_OK)
+	{
+		return 3;
+	}
+
+    //嘟一声
+    voice(Di);
+    /*密码验证*/
+    //数据块与控制块地址关系 = (addr / 4) * 4 + 3
+	if(MFRC522_AuthState(PICC_AUTHENT1A,addr/4*4+3,picc_passward,pSnr) != MI_OK)//验证A密码
+	{
+		printf("密码A对比失败!\r\n");
+		MFRC522_Halt();
+		return 4;
+	}
+    /*读块内数据*/
+    if(MFRC522_Read(addr,data) != MI_OK)
+	{
+		printf("数据读取失败!\r\n");
+		MFRC522_Halt();
+		return 5;	
+	}
+    /*休眠*/
+	MFRC522_Halt();
+	printf("数据读取成功\r\n");
+
+    return MI_OK;
 
 }
 

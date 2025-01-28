@@ -50,6 +50,8 @@ void main_page(u8 key)
 		}
 	//指纹开锁方式（低功耗模式下指纹模块被高速轮询）
 	open_fingerprint();
+	//卡片开锁方式
+	open_card();
 
 
 
@@ -372,7 +374,81 @@ void open_fingerprint(void){
 }
 
 
+void open_card(void){
+	//不进入卡片管理界面的话，二维数组数据不会读取，所以这里单独读取一次
+	static u8 ad_flag = 1;
+	u8 sta;
+	u8 picc_i,picc_j;
+	//此卡片是否注册的标志
+	u8 register_flag = 0;
 
+
+	//执行一次
+	if(ad_flag)
+	{
+		//从AT24中读出卡片ID数据到二维数组中
+		AT24C0x_read_bytes(31,sizeof(picc),picc);
+		//进入这个页面后只读取一次，开门成功后才恢复
+		ad_flag = 0;
+	}
+
+
+
+
+	//如果全部拿到则开始开锁流程
+	sta = ReadCardData(62,picc_read_data,picc_id);
+	if(sta == MI_OK){
+		//先遍历二维数据，检查此卡片有没有在本机注册过
+		for(picc_i=0;picc_i<9;picc_i++)
+		{
+			//序列号对比成功的字节数量
+			u8 temp_count = 0;
+			for(picc_j=0;picc_j<4;picc_j++)
+			{
+				//先判断此卡片有没有在本机注册过
+				if(picc[picc_i][picc_j] == picc_id[picc_j])
+				{
+					//卡片的四个字节序号全部相等，说明已经注册过，跳出循环
+					temp_count++;
+				}
+			}
+
+			//如果四个字节都相等，说明已经注册过，跳出循环
+			if(temp_count == 4)
+			{
+				//跳出循环,不用找了,后续步骤都不用执行了
+				register_flag = 1;
+				printf("此卡片已经注册! ID为:%d\r\n",picc_i+1);
+				break;
+			}
+		}
+
+		//已经对比了卡片序列号，此卡片已经注册过，接下来根据块内数据判断是否有开门权限
+		if(register_flag == 1){
+			for(int i=0;i<16;i++){
+				//如果有一个字节数据不相等的话，就是没有权限
+				if(picc_read_data[i] != picc_data[i])
+				{
+					//跳出循环,不用找了,后续步骤都不用执行了
+					printf("此卡片没有权限!");
+					voice(DOOROPEN_FAIL);
+					//直接结束程序，重新进入寻卡步骤
+					return;
+				}
+			}
+			//经过循环没有跳出，就代表有权限
+			door_open();
+			//语音播报
+			voice(DOOROPEN_SUCCESS);
+			//开门成功后，把状态恢复，以便下一次进入时会读取最新的注册数据
+			ad_flag = 1;
+		}else {
+			//没有注册还是开门失败
+			printf("此卡片没有注册!");
+			voice(DOOROPEN_FAIL);
+		}
+	}
+}
 
 
 /***********************************************
