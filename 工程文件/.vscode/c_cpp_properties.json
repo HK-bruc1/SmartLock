@@ -3,14 +3,14 @@
         {
             "name": "Target 1",
             "includePath": [
-                "c:\\Users\\admin\\Desktop\\智能锁\\工程文件\\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\\Libraries\\CMSIS",
-                "c:\\Users\\admin\\Desktop\\智能锁\\工程文件\\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\\Libraries\\CMSIS\\Include",
-                "c:\\Users\\admin\\Desktop\\智能锁\\工程文件\\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\\Libraries\\STM32F4xx_StdPeriph_Driver\\inc",
-                "c:\\Users\\admin\\Desktop\\智能锁\\工程文件\\user\\inc",
+                "c:\\Users\\admin\\Desktop\\智能锁项目文件夹\\智能锁\\工程文件\\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\\Libraries\\CMSIS",
+                "c:\\Users\\admin\\Desktop\\智能锁项目文件夹\\智能锁\\工程文件\\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\\Libraries\\CMSIS\\Include",
+                "c:\\Users\\admin\\Desktop\\智能锁项目文件夹\\智能锁\\工程文件\\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\\Libraries\\STM32F4xx_StdPeriph_Driver\\inc",
+                "c:\\Users\\admin\\Desktop\\智能锁项目文件夹\\智能锁\\工程文件\\user\\inc",
                 "C:\\Keil_v5\\ARM\\ARMCC\\include",
                 "C:\\Keil_v5\\ARM\\ARMCC\\include\\rw",
-                "c:\\Users\\admin\\Desktop\\智能锁\\工程文件\\user\\src",
-                "c:\\Users\\admin\\Desktop\\智能锁\\工程文件\\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\\Libraries\\STM32F4xx_StdPeriph_Driver\\src"
+                "c:\\Users\\admin\\Desktop\\智能锁项目文件夹\\智能锁\\工程文件\\STM32F4xx_DSP_StdPeriph_Lib_V1.4.0\\Libraries\\STM32F4xx_StdPeriph_Driver\\src",
+                "c:\\Users\\admin\\Desktop\\智能锁项目文件夹\\智能锁\\工程文件\\user\\src"
             ],
             "defines": [
                 "STM32F401xx",

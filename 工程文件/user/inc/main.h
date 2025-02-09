@@ -47,6 +47,15 @@ typedef struct usart
     u8 usart_flag;
 }USART_t;
 
+//设置音量和亮度的结构体
+typedef struct set
+{
+	u8 open_flag;
+	u8 voice;
+	u8 light;
+	
+}SET_VAL_t;
+
 
 //所有外部变量声明
 extern USART_t usart1;
@@ -64,6 +73,8 @@ extern u8 picc[9][4];
 extern u8 picc_data[16];
 extern u8 picc_id[4];
 extern u8 picc_read_data[16];
+extern SET_VAL_t set_data;
+extern u8 voice_cmd[];
 
 
 

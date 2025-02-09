@@ -103,13 +103,40 @@ void rtc_set_time(RTC_t time)
 }
 
 
+/***************************************
+*函数名     ：rtc_set_custom_time
+*函数功能    ：手动设置RTC时间
+*函数参数    ：RTC_t time
+*函数返回值  ：无
+*函数描述    ：在系统运行时修改RTC时间
+****************************************/
+void rtc_set_custom_time(RTC_t time)
+{
+    //解除写保护
+    RTC_WriteProtectionCmd(DISABLE);
+    
+    //进入初始化模式
+    RTC_EnterInitMode();
+    //等待进入完成
+    while(!(RTC_GetFlagStatus(RTC_FLAG_INITF)));
+    
+    //设置时间和日期
+    rtc_set_time(time);
+    
+    //退出初始化模式
+    RTC_ExitInitMode();
+    //打开写保护
+    RTC_WriteProtectionCmd(ENABLE);
+}
+
+
 
 /***************************************
 *函数名			：get_sys
 *函数功能		：字符串获取系统时间日期函数
 *函数参数		：
 *函数返回值	：无
-*函数描述		：
+*函数描述		：获取编译时间
 ****************************************/
 u8 time[]=__TIME__;
 u8 data[]=__DATE__;

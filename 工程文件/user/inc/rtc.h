@@ -1,6 +1,7 @@
 #ifndef _RTC_H
 #define _RTC_H
 #include "main.h"  
+
 typedef struct rtc
 {
 	u8 year;
@@ -22,7 +23,9 @@ void rtc_weekday_get(void);
 
 void rtc_alarmA_init9(RTC_t alarm_time);
 void rtc_WakeUp_init(void);
+void rtc_set_custom_time(RTC_t time);
 #endif
+
 
 
 

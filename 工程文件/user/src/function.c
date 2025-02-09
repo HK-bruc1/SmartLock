@@ -31,27 +31,36 @@ void zk_update(void){
 *函数功能  :主界面函数
 *函数参数  :u8 key
 *函数返回值:无
-*函数描述  :page_mode = 1
+*函数描述  :page_mode = 1,只有开锁方式的轮询，主函数界面在密码开锁方式中绘制
 ************************************************/
 void main_page(u8 key)
 {
+	//第一次开机标志位的值,由于只会获取一次但是会进入多次，需要保存下来
+    static u8 open_val;
     // 定义一个标志位来表示当前的颜色状态
     static int color_flag = 0;
     //传递时间数据,因为多次调用避免反复定义
     static u8 timer_buff[20];
-	//密码开锁方式
+
+
+	//密码开锁方式(主界面显示也在这里)
 		//进入管理员界面的标志（只有密码开锁方式可以进入到管理员界面，其他只有开门功能）
 		u8 sta;
 		//在主界面密码开锁后,才进入管理员界面使用键值访问各界面
-		sta = open_passward(key);
+		sta = open_passward(key,&open_val);
 		if(sta == 1){
 			//不在函数中层层调用进入下一个页面，在while中不断通过标志位轮询跳过对应界面即可
 			page_mode = 2;
 		}
-	//指纹开锁方式（低功耗模式下指纹模块被高速轮询）
-	open_fingerprint();
-	//卡片开锁方式
-	open_card();
+
+	//利用密码开锁函数返回的开机状态决定是否高速轮询
+	if(open_val == OPEN_FLAG){
+		//第一次开机不应该高速轮询除了密码开锁之外的开锁方式
+		//指纹开锁方式（低功耗模式下指纹模块被高速轮询）
+		open_fingerprint();
+		//卡片开锁方式
+		open_card();
+	}
 
 
 
@@ -73,12 +82,13 @@ void main_page(u8 key)
 /***********************************************
 *函数名    :open_passward
 *函数功能  :密码开锁
-*函数参数  :u8 bs8116_key
+*函数参数  :u8 bs8116_key,u8 *open_val
 *函数返回值:u8
 *函数描述  :返回1 开门成功
            返回0 开门失败
+		   把开机状态带出去，以便主函数决定是否高速轮询其他开锁方式
 ************************************************/
-u8 open_passward(u8 bs8116_key){
+u8 open_passward(u8 bs8116_key,u8 *open_val_main){
     //密码解锁的状态返回值
     u8 sta = 0xff;
     //第一次开机标志位的值,由于只会获取一次但是会进入多次，需要保存下来，不然第二次就会出错
@@ -101,6 +111,8 @@ u8 open_passward(u8 bs8116_key){
     if(pass_page_flag){
         //读第一次开机标志位
         at24c0x_read_byte(10,&open_val);
+		//给主函数一份,以便主函数决定是否高速轮询其他开锁方式
+		*open_val_main = open_val;
         //密码开锁界面
         LCD_dis_pic(0,0,gImage_systemPic);
         x=45;
@@ -352,11 +364,9 @@ void open_fingerprint(void){
 
 
 	//松开指纹颜色恢复
-	if(MG200_DETECT_READ()==0 && finger_touch_sta==1){
+	if(MG200_DETECT_READ()==0){
 		//指纹恢复
 		fingerprint_lgray();
-		//一次采集对比完成
-		finger_touch_sta = 0;
 		//关电源
 		MG200_PWR_RESET();
 	}
@@ -1676,6 +1686,10 @@ void voice_light_page(u8 key)
 		LCD_dis(0,220,"【*】主界面",LIGHTBLUE,0,0xff,16);
 		LCD_dis(150,220,"上一级【#】",LIGHTBLUE,0,0xff,16);
 		
+		//利用初始化时读取的声音和亮度信息，使用图形显示出来
+		LCD_xy_clear(60,90,set_data.voice*30,30,LGRAY,0,NULL);
+		LCD_xy_clear(60,148,set_data.light*30,30,LGRAY,0,NULL);
+
 		ad_flag = 0;
 	}
 	
@@ -1696,31 +1710,108 @@ void voice_light_page(u8 key)
 	//声音加
 	else if(key=='1')
 	{
-		
+		if(set_data.voice<5)
+		{
+			//voice为一个u8类型的整数，只能是0，1，2，3，4，5档位，屏幕画面占满
+			set_data.voice++;
+			//根据档位映射到对应的指令
+			voice(voice_cmd[set_data.voice]) ;
+			//把当前声音档位存入AT24C0x中
+			//10号地址存首次开机标志，20号地址存首次打开指纹管理界面，21~29号地址存指纹ID信息
+			//首次进入卡片管理界面标志可以存在30号地址，后续地址存卡片UID信息二维数组[9][4]:36个地址
+			//70号地址以后应该是可以使用的，存的是结构体，方便管理数据但是考虑到内部对齐，不好计算。
+			//存入结构体包括是否是第一次设置，声音大小以及亮度设置
+			//不用考虑具体数据地址，存入结构体，拿出来也用结构体接收即可
+			AT24C0x_write_bytes(70,sizeof(SET_VAL_t),(u8 *)&set_data,AT24C04);
+			//把声音大小映射到屏幕图形大小
+			LCD_xy_clear(60,90,set_data.voice*30,30,LGRAY,0,NULL);
+		}
 	}
 	//声音减
 	else if(key=='2')
 	{
-			
+		//可以有0档，所以减到0档时，就不用再减了
+		if(set_data.voice>0)
+		{
+			set_data.voice--;
+			voice(voice_cmd[set_data.voice]) ;
+			AT24C0x_write_bytes(70,sizeof(SET_VAL_t),(u8 *)&set_data,AT24C04);
+			//把声音大小映射到屏幕图形大小，还原背景颜色值
+			//声音变小，改变的是长度啊，高度不会变
+			//计算出对应档位的清理区域，还原背景颜色
+			//最大档位的图形的长度最多到150(30*50)，档位只能逐步减小，所以计算一个档位的清除区域即可
+			//比如现在是5档，满条形状态，减去一档，应该还原5档区域背景颜色
+			//计算：确定x:60+4*30，y:90，宽：150-4*30，高：30
+			LCD_xy_clear(60+set_data.voice*30,90,150-set_data.voice*30, 30,0xff,1,gImage_systemPic);
+		}
 	}
 	//静音
 	else if(key=='3')
 	{
-		
+		//直接输入禁音指令（无效。。。）
+		// voice(0x27);
+		// voice(0x00);
 	}
 	
 	
-	//加亮度
+	//加亮度，u8:0~255
 	else if(key == '4')
 	{
-		
+		if(set_data.light<5)
+		{
+			set_data.light++;
+			LCD_xy_clear(60,148,set_data.light*30,30,LGRAY,0,0xff);
+			//TIM3的4号通道连接了LCD屏幕的背光灯引脚，刚开始是通用输出模式，只有全功率1和关闭0
+			//屏幕初始化时改为pwm控制亮度，设置5档，映射到0~1000
+			TIM3->CCR4 = set_data.light*200;
+			AT24C0x_write_bytes(70,sizeof(SET_VAL_t),(u8 *)&set_data,AT24C04);
+		}
 	}
 
 	//减亮度
 	else if(key == '5')
 	{
-		
+		if(set_data.light>0)
+		{
+			set_data.light--;
+			LCD_xy_clear(60+set_data.light*30,148,150-set_data.light*30,30,LGRAY,1,gImage_systemPic);
+			TIM3->CCR4 = set_data.light*200;
+			AT24C0x_write_bytes(70,sizeof(SET_VAL_t),(u8 *)&set_data,AT24C04);
+			
+		}
 	}
+}
+
+
+/***********************************************
+*函数名    :set_v_l
+*函数功能  :设置声音和亮度
+*函数参数  :无
+*函数返回值:无
+*函数描述  :读取指定位置的数据，查看是否已经设置了数据
+************************************************/
+void set_v_l(void)
+{
+	/*检测是否第一次进入此设置*/
+	AT24C0x_read_bytes(70,sizeof(SET_VAL_t),(u8 *)&set_data);
+	if(set_data.open_flag != OPEN_FLAG)
+	{
+		//设定初始声音
+		set_data.light = 3;
+		set_data.voice = 3;
+		set_data.open_flag = OPEN_FLAG;
+		AT24C0x_write_bytes(70,sizeof(SET_VAL_t),(u8 *)&set_data,AT24C04);
+		voice(voice_cmd[set_data.voice]);
+		//亮度
+		TIM3->CCR4 = set_data.light*200;
+	}
+	else 
+	{
+		//读取已经设置好的数据
+		voice(voice_cmd[set_data.voice]);
+		//亮度
+		TIM3->CCR4 = set_data.light*200;
+	}	
 }
 
 /***********************************************
@@ -1757,8 +1848,20 @@ void factory_reset_page(u8 key)
 	//确认
 	if(key=='*')
 	{
+		//屏幕应该关灯
+		TIM3->CCR4 = 0;
+		//回到主界面，复位刷新界面时就不会看到之前的残留界面了
+		//先关灯再把界面设置为主界面即可，就看不到明显的画面切换了
 		page_mode = 1;       //回主界面
 		ad_flag = 1;
+		//把所有存储芯片的数据删除？字库不要删除，一般是用户数据删除而已
+		//对AT24C04进行整个芯片擦除
+		//因为 EEPROM 不能直接擦除，只能改写数据,全部改写0x00,10~80号地址
+		//美中不足是背景图片不能删除，是存储在FLASH中的
+		restore_factory_defaults();
+		
+
+
 	}
 	//返回
 	else if(key=='#')
@@ -1766,6 +1869,51 @@ void factory_reset_page(u8 key)
 		page_mode = 2;       //上一级菜单
 		ad_flag = 1;
 	}
+}
+
+
+/**
+ * @brief 恢复出产设置
+ * 
+ */
+void restore_factory_defaults(void) {
+    u8 data_to_write[71];
+	//恢复出产设置固定的特殊时间
+	RTC_t custom_time = {
+    .year = 24,    // 2024年
+    .mon = 2,      // 2月
+    .day = 9,      // 9日
+    .week = 5,     // 周五
+    .hour = 00,    // 00时
+    .min = 00,     // 00分
+    .sec = 0       // 0秒
+	};
+
+
+    for (int i = 0; i < 71; i++) {
+        data_to_write[i] = 0x00;  // 填充 0x00
+    }
+
+    // 调用写入函数，从地址 10 开始写入 71 字节数据
+    AT24C0x_write_bytes(10, 71, data_to_write, AT24C04);
+
+	//语音播报
+	voice(RECOVER_ALL);
+
+	//RTC可以恢复到一个固定值,备份域寄存器中的标志位不变，不断电复位的情况下不会触发获取系统编译时间
+	rtc_set_custom_time(custom_time);
+
+	printf("等待5秒......\r\n");
+	//修改看门狗的超时限制
+	//解除写保护
+	IWDG->KR = 0x5555;
+	while(IWDG->SR & (1U<<1));    // 等待之前的重载值加载完成，避免新重载值被覆盖或者错乱
+	IWDG->RLR = 1250;
+	IWDG->KR = 0xAAAA;
+	//5秒后让看门狗复位
+	while(1);
+
+
 }
 
 
