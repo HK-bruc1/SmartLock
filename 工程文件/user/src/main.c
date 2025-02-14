@@ -7,7 +7,7 @@
 USART_t usart1;
 
 //定时器9的定时中断事件器
-u16 tim9_count [10];
+volatile u16 tim9_count [10];
 
 //是否开启字库更新标志
 u8 zk_flag = 0;
@@ -55,6 +55,25 @@ SET_VAL_t set_data = {0};
 //档位权重：0，2，9，11，15
 u8 voice_cmd[] = {0x27,0x25,0x23,0x22,0x21,0x20};
 
+//初始化一个接收ESP32信息的结构体变量
+USART2_RECSTR esp32rec = {0};
+
+//设置wifi信息
+//在 C 语言中，字符串字面量中的双引号需要使用转义符 \" 来表示。
+//这是为了区分字符串的边界符号和实际要在字符串中使用的双引号字符
+//u8 buuff[] = "AT+CWJAP=\"LL\",\"12345678\"\r\n"; // 示例命令，连接到WIFI "LL" 密码 "12345678"
+//u8 wifi_command[] = "AT+CWJAP=\"abc\",\"0123456789\"\r\n";使用函数封装更友好
+
+//让所有的开门之后自动关门，那么只需要上报关门的数据即可
+//设置一个有效计时标志位，当门打开的时候，设置标志位，自动关门程序开启，到时间后在中断中关闭，同时把标志位清0
+u8 autoCloseTimerFlag = 0;
+
+//WiFi连接标志，没有连接WiFi的情况下，禁止执行MQTT相关的代码，不然一直超时重传，影响系统使用
+//wifi断开的标志，如果一开始没有连接，周期性检查时会被置1，等到重连成功时，如果之前断开过，需要重连MQTT所以复位
+//WiFi中途断开，周期性检查时会被置1，等到重连成功时，如果之前断开过，需要重连MQTT所以复位
+//复位后自动变1，不用管
+u8 wifi_connect_flag = 1;
+
 
 
 int main (void){
@@ -100,6 +119,23 @@ int main (void){
 	//加看门狗实现更新字库后自动复位加载,10s擦除时间
 	zk_update();
 
+	//最后初始化ESP32
+	//将用到的串口2初始化了，测试ESP32是否正常工作，恢复出产设置后，设置客户端模式，进入透传模式,设置WiFi重连配置
+	Esp32_Init();
+
+
+	//连接WIFI，决定接下来是单机模式还是联网模式。
+	wifi_connect_flag = Esp32_Wificonnect("319334854","88888888");
+
+
+
+	//MQTT相关配置，连接到服务器后使用MQTT协议进行数据传输
+	if(wifi_connect_flag ==0){
+		mqtt_init();
+	}
+
+
+	//没有初始化完成之前不应该让屏幕亮起来
 	//声音亮度设定,没有记录就初始化
 	set_v_l();
 
@@ -108,6 +144,15 @@ int main (void){
 
 
 	while(1){
+		u8 temp;
+		temp = Esp32_SendandReceive("AT+CWSTATE?\r\n",(u8 *)"OK",2000);
+		if(temp==0){
+			//周期性检查返回了数据
+			printf("周期性检查返回了数据\r\n");
+		}else {
+			printf("周期性检查没有返回了数据\r\n");
+		}
+
 		//赋值看门狗
 		iwdg_feed();
 		key_val = BS8116_Key_scan();
@@ -134,6 +179,5 @@ int main (void){
 		}
 		
 	}
-	return 1;
 }
 

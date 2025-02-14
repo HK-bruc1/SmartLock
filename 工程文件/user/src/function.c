@@ -51,6 +51,10 @@ void main_page(u8 key)
 		if(sta == 1){
 			//不在函数中层层调用进入下一个页面，在while中不断通过标志位轮询跳过对应界面即可
 			page_mode = 2;
+			//自动关门计时开始
+			LED4_ON;
+			tim9_count[4] = 0;
+			autoCloseTimerFlag = 1;
 		}
 
 	//利用密码开锁函数返回的开机状态决定是否高速轮询
@@ -279,8 +283,6 @@ u8 open_passward(u8 bs8116_key,u8 *open_val_main){
 
 
 void open_fingerprint(void){
-	//是否开门成功的标志位
-	static u8 open_door_flag = 0;
 	//用来接收操作返回值
     u8 rec_parameter,ret = 0xfe;
 	//指纹模块的触摸状态
@@ -346,13 +348,12 @@ void open_fingerprint(void){
 		if(ret==0x00){
 			//判断指纹对比结果，如果成功，则打开门,直接推门进入
 			door_open();
-			//开门状态标志位置1
-			open_door_flag = 1;
 			//语音播报
 			voice(DOOROPEN_SUCCESS);
-			//开始计时
+			//自动关门计时开始,5s自动上锁
+			LED4_ON;
 			tim9_count[4] = 0;
-			//5s之后自动上锁
+			autoCloseTimerFlag = 1;
 		}else{
 			//指纹对比失败，松开手指语音播报
 			voice(DOOROPEN_FAIL);
@@ -371,16 +372,6 @@ void open_fingerprint(void){
 		MG200_PWR_RESET();
 	}
 
-	//在成功开门的情况下
-	if(open_door_flag==1){
-		//单独判断指纹开锁后的自动关门逻辑
-		if(tim9_count[4]>=5000){
-			printf("close_door");
-			door_close();
-			//把标志位置0
-			open_door_flag = 0;
-		}
-	}
 }
 
 
@@ -448,6 +439,10 @@ void open_card(void){
 			}
 			//经过循环没有跳出，就代表有权限
 			door_open();
+			//自动关门计时开始,5s自动上锁
+			LED4_ON;
+			tim9_count[4] = 0;
+			autoCloseTimerFlag = 1;
 			//语音播报
 			voice(DOOROPEN_SUCCESS);
 			//开门成功后，把状态恢复，以便下一次进入时会读取最新的注册数据

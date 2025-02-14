@@ -10,4 +10,7 @@ void mg200_usart6Init(u32 baud);
 void USART6_SendChar(uint8_t ch);
 void USART6_SendBytes(u8 *data, uint8_t length);
 
+void usart2_esp32_Init(void);
+void usart2_esp32_send_str(u8 *data);
+
 #endif

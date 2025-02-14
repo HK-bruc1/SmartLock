@@ -50,3 +50,5 @@
 .\objects\selfprintf.o: .\user\inc\rtc.h
 .\objects\selfprintf.o: .\user\inc\mg200.h
 .\objects\selfprintf.o: .\user\inc\rc522.h
+.\objects\selfprintf.o: .\user\inc\esp32.h
+.\objects\selfprintf.o: .\user\inc\mqtt.h

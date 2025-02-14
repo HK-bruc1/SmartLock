@@ -50,3 +50,5 @@
 .\objects\door.o: .\user\inc\rtc.h
 .\objects\door.o: .\user\inc\mg200.h
 .\objects\door.o: .\user\inc\rc522.h
+.\objects\door.o: .\user\inc\esp32.h
+.\objects\door.o: .\user\inc\mqtt.h

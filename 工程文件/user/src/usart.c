@@ -206,4 +206,113 @@ void USART6_SendBytes(u8 *data, uint8_t length) {
 
 
 
+/*****************************************************
+函数功能：UART2初始化配置用于与ESP32通信
+函数形参：void
+函数返回值：void
+函数说明：
+    使用引脚: PA2(UART2_TX), PA3(UART2_RX)
+    波特率: 115200
+    数据格式: 8位数据位, 1位停止位, 无校验位
+*****************************************************/
+void usart2_esp32_Init(void)
+{
+    // 1. 使能GPIOA时钟
+    // UART2的TX(PA2)和RX(PA3)都在GPIOA上
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+    
+    // 2. 将PA2和PA3配置为UART2的复用功能
+    //复用功能写前面，不然会偷发一个？号   ？
+    // GPIO_AF_USART2表示将引脚复用为UART2功能
+    GPIO_PinAFConfig(GPIOA, GPIO_PinSource2, GPIO_AF_USART2);  // PA2配置为UART2_TX
+    GPIO_PinAFConfig(GPIOA, GPIO_PinSource3, GPIO_AF_USART2);  // PA3配置为UART2_RX
+    
+    // 3. 配置GPIO参数
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF;     // 配置为复用模式
+    GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;   // 推挽输出
+    GPIO_InitStruct.GPIO_Pin = GPIO_Pin_2 | GPIO_Pin_3;  // 配置PA2和PA3
+    GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL; // 无上下拉
+    GPIO_InitStruct.GPIO_Speed = GPIO_Low_Speed;   // 低速模式，115200,ESP32规定了，低速模式够用
+    GPIO_Init(GPIOA, &GPIO_InitStruct);
+    
+    // 4. 配置UART2参数
+    // 首先使能UART2时钟，UART2在APB1总线上
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
+    
+    // 配置UART2通信参数
+    USART_InitTypeDef USART_InitStruct = {0};
+    USART_InitStruct.USART_BaudRate = 115200;     // 波特率设置为115200
+    USART_InitStruct.USART_HardwareFlowControl = USART_HardwareFlowControl_None;  // 禁用硬件流控
+    USART_InitStruct.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;  // 使能发送和接收功能
+    USART_InitStruct.USART_Parity = USART_Parity_No;    // 无校验位
+    USART_InitStruct.USART_StopBits = USART_StopBits_1; // 1位停止位
+    USART_InitStruct.USART_WordLength = USART_WordLength_8b; // 8位数据位
+    USART_Init(USART2, &USART_InitStruct);
+    
+    // 5. 配置UART2中断
+    USART_ITConfig(USART2, USART_IT_RXNE, ENABLE);  // 使能接收中断
+    USART_ITConfig(USART2, USART_IT_IDLE, ENABLE);  // 使能空闲中断
+    
+    
+    // 6. 配置NVIC中断优先级
+        //优先级分组建议写在主函数中
+        //两位抢占，两位响应表示优先级
+        //NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+
+        NVIC_InitTypeDef NVIC_InitStruct = {0};
+        NVIC_InitStruct.NVIC_IRQChannel = USART2_IRQn;//只能内核文件中找了,无法跳转,跳到结构体就能看到
+        NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = 1; // 抢占优先级为1
+        NVIC_InitStruct.NVIC_IRQChannelSubPriority = 1; // 响应优先级为1
+        //单向使能USART6的中断信号通道
+        NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
+        NVIC_Init(&NVIC_InitStruct);
+
+    // 7. 使能UART2
+    USART_Cmd(USART2, ENABLE);
+}
+
+
+/*****************************************************
+函数名    : usart2_esp32_send_str
+函数功能  : 串口2发送字符串到ESP32
+函数形参  : u8 *data - 指向要发送的字符串的指针
+函数返回值: void
+函数说明  :  1. 通过查询方式发送，发送完成前会阻塞
+            2. 使用USART_SR寄存器的TC位判断发送状态
+            3. 通过USART_DR寄存器发送数据
+*****************************************************/
+void usart2_esp32_send_str(u8 *data)
+{
+    // 循环直到遇到字符串结束符'\0'
+    while(*data != '\0')
+    {
+        // 等待上一次发送完成
+        // SR寄存器的第6位(TC位)为1表示发送完成
+        // TC = Transmission Complete
+        //while((USART2->SR & (0X1 << 6)) == 0);
+
+        //等待发送数据寄存器为空（TXE标志位为1） 
+        //USART_FLAG_TXE 代替 USART_FLAG_TC：
+        //TXE = 1 表示寄存器空闲，可以写入新数据，提高传输效率。
+        //TC = 1 表示整个数据帧发送完成，适用于等待最后一个字符传输完毕。
+        while(USART_GetFlagStatus(USART2, USART_FLAG_TXE) == RESET); 
+        
+        // 向DR寄存器写入数据，启动发送
+        // data指针自增，指向下一个要发送的字符
+        //USART2->DR = *data++;
+        USART_SendData(USART2, (uint16_t)(*data)); // 发送单个字符
+        data++; // 指向下一个字符
+        
+        // 注：DR = Data Register，数据寄存器
+        // 写DR会自动清除TC位
+        // 发送完成后TC位会自动置1
+    }
+
+    // 可选：等待最后一个字符发送完成，确保数据全部输出
+    while (USART_GetFlagStatus(USART2, USART_FLAG_TC) == RESET);
+}
+
+
+
 

@@ -50,3 +50,5 @@
 .\objects\delay.o: .\user\inc\rtc.h
 .\objects\delay.o: .\user\inc\mg200.h
 .\objects\delay.o: .\user\inc\rc522.h
+.\objects\delay.o: .\user\inc\esp32.h
+.\objects\delay.o: .\user\inc\mqtt.h

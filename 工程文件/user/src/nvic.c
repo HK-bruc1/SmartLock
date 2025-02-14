@@ -37,7 +37,7 @@ void USART1_IRQHandler(void){
                 //关闭字库更新标志
                 zk_flag = 0;
                 
-                //触发看门狗复位，1s后复位，单独喂，少一点。复位后还是10秒喂一次。
+                //触发看门狗复位，1s后复位，单独喂，少一点。复位后还是10秒后超时。
                 //若要更改重载值， IWDG_SR 中的 RVU 位必须为 0。
                 //RVU： 看门狗计数器重载值更新 (Watchdog counter reload value update)
                 //可通过硬件将该位置 1 以指示重载值正在更新。当在 VDD 电压域下完成重载值更新操作后
@@ -104,6 +104,9 @@ TIM1_BRK_TIM9_IRQHandler(void){
         tim9_count[3]++;
         //自动关门计时
         tim9_count[4]++;
+        //周期检查WiFi的连接状态
+        tim9_count[5]++;
+
 
 
         //led3呼吸灯
@@ -122,8 +125,28 @@ TIM1_BRK_TIM9_IRQHandler(void){
             }
         }
 
+        //周期性检查WiFi的状态,每一分钟检查一次
+        if(tim9_count[5]>=60000){
+            //到时间就归零
+            tim9_count[5] = 0;
+            printf("周期性检查WiFi状态\r\n");
+            Esp32_SendandReceive("AT+CWSTATE?\r\n",(u8 *)"OK",10000);
+        }
 
 
+        //自动关门程序
+        if(tim9_count[4]>=5000 && autoCloseTimerFlag==1){
+            //让计时无效
+            autoCloseTimerFlag = 0;
+            //关门程序
+            door_close();
+            LED4_OFF;
+            //上报数据，前提是WiFi连接了，不然为了云端同步会一直超时重传！
+            if(wifi_connect_flag==0){
+                publish_close();
+            }
+            printf("自动关门\r\n");
+        }
     }
 }
 
@@ -180,10 +203,13 @@ void RTC_WKUP_IRQHandler(void)
 *函数描述  ：接收指纹模块传递过来的8个字节
 ***********************************************/
 void USART6_IRQHandler(void){
+    //为什么串口6的中断一直被触发
+    //printf("mg200的指纹模块进入中断函数");
     static u8 i = 0;
 
     //判断是接收完成中断信号触发
     if(USART_GetITStatus(USART6, USART_IT_RXNE)){
+        //printf("mg200的指纹模块中断函数,是接收中断触发的");
         //清除中断标志位
         USART_ClearITPendingBit(USART6, USART_IT_RXNE);
         //紧急事件(只接受不做处理),每次只能接收一个字节数据,数据包被处理了才再次接收，否则不接受
@@ -193,15 +219,147 @@ void USART6_IRQHandler(void){
     //连续的数据接收完了，判断是空闲中断
     if(USART_GetITStatus(USART6,USART_IT_IDLE))
     {
+        //没上电他也发送数据
+        //printf("mg200的指纹模块中断函数,是空闲中断触发的");
         //请中断标志位
         USART6->SR;
         USART6->DR;
         //紧急事件
         i = 0;       //下一次接收从0号开始放
+        //低功耗模式，会一直偷发数据，需要给一个标志位来标志什么时候接收的数据的有效的指纹数据
         //上电好像会发数据啊，在发送命令给mg200时把mg200_rec_flag置为0
         mg200_rec_flag = 1;     //接收指令包完成，可以解析指令包
     }
 }
+
+
+
+/*****************************************************
+函数名称  : USART2_IRQHandler
+函数功能  : ESP32 串口2 (USART2) 中断服务函数，用于接收数据并处理
+函数形参  : void
+函数返回值: void
+注意事项  : 该版本针对ESP32返回数据以\r\n结尾的特性进行了优化
+*****************************************************/
+void USART2_IRQHandler(void)
+{
+    u8 temp;
+    static u8 lastChar = 0; // 用于存储上一个接收到的字符
+
+    //用于解析MQTT发过来的数据
+    char *lock_status_str;
+    int lock_status;
+
+    //周期性WiFi检查的数据解析
+    char *WiFi_status_str;
+    int WiFi_status;
+
+    
+    // 检测是否为接收数据非空 (RXNE) 中断
+    if (USART_GetITStatus(USART2, USART_IT_RXNE))
+    {
+        temp = USART_ReceiveData(USART2);
+        
+        // 检查是否到达缓冲区上限
+        if (esp32rec.len >= sizeof(esp32rec.buff) - 3) // 预留\r\n\0三个字符的空间
+        {
+            esp32rec.len = 0; // 防止缓冲区溢出，重新开始接收
+            lastChar = 0;
+            return;
+        }
+
+        // 存储接收到的字符
+        esp32rec.buff[esp32rec.len++] = temp;
+        
+        // 检查是否接收到完整的结束符 \r\n
+        if (lastChar == '\r' && temp == '\n')
+        {
+            // 移除结束符
+            esp32rec.len -= 2; // 回退两个字符（\r\n）
+            
+            // 添加字符串结束符
+            esp32rec.buff[esp32rec.len] = '\0';
+            
+            // 置位接收完成标志
+            esp32rec.flag = 1;
+            
+            // 处理接收到的数据（ESP32发送过来的数据）
+            //分开从ESP32主动发过来的数据和响应单片机AT指令的数据
+            //主动发的只对这两个指令做处理，其他不管
+            // 只处理包含 "attributes/push" 的消息
+            if (strstr((char *)esp32rec.buff, "attributes/push") != NULL)
+            {
+                // 查找 "lock_status" 在字符串中的位置
+                lock_status_str = strstr((char *)esp32rec.buff, "\"lock_status\":");
+                if (lock_status_str != NULL)
+                {
+                    // 找到 "lock_status": 后面紧接的值
+                    lock_status_str = strchr(lock_status_str, ':');  // 找到 ':' 位置
+                    if (lock_status_str != NULL)
+                    {
+                        lock_status_str++;  // 跳过冒号
+                        lock_status = atoi(lock_status_str);  // 将字符串转换为整数
+                        if(lock_status==0){
+                            //关门
+                            LED4_OFF;
+                            //执行关门函数
+                            door_close();
+                        }else if(lock_status==1){
+                            //开门
+                            LED4_ON;
+                            voice(DOOROPEN_SUCCESS);
+                            door_open();
+                            //自动关门计时开始
+                            tim9_count[4] = 0;
+                            autoCloseTimerFlag = 1;
+                        }
+                    }
+                }
+            }
+            
+            //周期性检查传回的WiFi状态
+                // 查找 "+CWSTATE:" 在字符串中的位置
+                WiFi_status_str = strstr((char *)esp32rec.buff, "+CWSTATE:");
+                if (WiFi_status_str != NULL)
+                {
+                    // 找到 +CWSTATE:: 后面紧接的值
+                    WiFi_status_str = strchr(WiFi_status_str, ':');  // 找到 ':' 位置
+                    if (WiFi_status_str != NULL)
+                    {
+                        WiFi_status_str++;  // 跳过冒号
+                        WiFi_status = atoi(WiFi_status_str);  // 将字符串转换为整数
+                        if(WiFi_status==0 || WiFi_status==3 || WiFi_status==4){
+                           printf("wifi断开\r\n");
+                           //WiFi连接的标志，MQTT是否上报的标志
+                           wifi_connect_flag = 1;
+                        }else if(WiFi_status==1||WiFi_status==2){
+                            if(wifi_connect_flag==1){
+                                printf("wifi连接恢复,复位开启远程开锁模式\r\n");
+                                //之前断开过，需要重连MQTT，马上软件复位，有网之后复位是为了连接MQTT
+                                NVIC_SystemReset();
+                            }else{
+                                printf("wifi正常连接\r\n");
+                            }
+                        }
+                    }
+                }
+            
+            // 清空接收缓冲区计数，准备下一次接收
+            esp32rec.len = 0;
+        }
+        
+        // 保存当前字符，用于下一次比较
+        lastChar = temp;
+    }
+    
+    // 保留空闲中断IDLE中断标志位清除，防止意外情况
+    if (USART_GetITStatus(USART2, USART_IT_IDLE))
+    {
+        (void)USART2->SR;
+        (void)USART2->DR;
+    }
+}
+
 
 
 

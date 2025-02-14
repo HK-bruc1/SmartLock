@@ -50,3 +50,5 @@
 .\objects\voice.o: .\user\inc\rtc.h
 .\objects\voice.o: .\user\inc\mg200.h
 .\objects\voice.o: .\user\inc\rc522.h
+.\objects\voice.o: .\user\inc\esp32.h
+.\objects\voice.o: .\user\inc\mqtt.h

@@ -50,3 +50,5 @@
 .\objects\w25q64.o: .\user\inc\rtc.h
 .\objects\w25q64.o: .\user\inc\mg200.h
 .\objects\w25q64.o: .\user\inc\rc522.h
+.\objects\w25q64.o: .\user\inc\esp32.h
+.\objects\w25q64.o: .\user\inc\mqtt.h

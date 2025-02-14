@@ -50,3 +50,5 @@
 .\objects\rtc.o: .\user\inc\rtc.h
 .\objects\rtc.o: .\user\inc\mg200.h
 .\objects\rtc.o: .\user\inc\rc522.h
+.\objects\rtc.o: .\user\inc\esp32.h
+.\objects\rtc.o: .\user\inc\mqtt.h

@@ -46,7 +46,8 @@ void mg200_send_command(u8 command,u8 parameter){
     USART6_SendBytes(data,7);
     //printf("7个字节数据发送成功\r\n");
     //防止上电会发送数据给MCU意外导致标志位提前置1（逆天bug）
-	mg200_rec_flag = 0;//使其可以感应数据接收完成
+    //低功耗模式会时不时偷发数据
+	mg200_rec_flag = 0;//使其可以数据接收完成
 }
 
 
@@ -65,7 +66,9 @@ u8 mg200_read_cmd(u8 cmd,u8 *parameter,u8 *result)
 
 	/*等待指令数据包在中断中接收完成*/
 	while(!mg200_rec_flag);
-	
+
+    //这里清不清零无所谓，mg200偷发数据时会置1
+    //单片机发送指令时会清一次零的，然后等待有效数据包接收后置1，跳出循环
 	mg200_rec_flag = 0;               //标志位清零
 	/*验证接收到的数据包*/
 	if(mg200_buff[0] != 0x6c)   return 1;

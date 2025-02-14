@@ -27,6 +27,8 @@
 #include "rtc.h"
 #include "mg200.h"
 #include "rc522.h"
+#include "esp32.h"
+#include "mqtt.h"
 
 
 
@@ -56,10 +58,18 @@ typedef struct set
 	
 }SET_VAL_t;
 
+//接收ESP32信息的结构体
+typedef struct
+{
+	u8 buff[1024];//接收需要的字符串
+	u16 len; //收到的数据的长度
+	u8 flag;//表示数据接收完成的标志
+}USART2_RECSTR;
+
 
 //所有外部变量声明
 extern USART_t usart1;
-extern u16 tim9_count [10];
+extern volatile u16 tim9_count [10];
 extern char at24c02_rec_str[];
 extern u8 zk_flag;
 extern u16 page_mode;
@@ -75,6 +85,9 @@ extern u8 picc_id[4];
 extern u8 picc_read_data[16];
 extern SET_VAL_t set_data;
 extern u8 voice_cmd[];
+extern USART2_RECSTR esp32rec;
+extern u8 autoCloseTimerFlag;
+extern u8 wifi_connect_flag;
 
 
 

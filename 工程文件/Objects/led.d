@@ -50,3 +50,5 @@
 .\objects\led.o: .\user\inc\rtc.h
 .\objects\led.o: .\user\inc\mg200.h
 .\objects\led.o: .\user\inc\rc522.h
+.\objects\led.o: .\user\inc\esp32.h
+.\objects\led.o: .\user\inc\mqtt.h
