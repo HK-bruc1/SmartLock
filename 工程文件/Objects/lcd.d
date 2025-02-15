@@ -35,6 +35,7 @@
 .\objects\lcd.o: .\user\inc\nvic.h
 .\objects\lcd.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
 .\objects\lcd.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+.\objects\lcd.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
 .\objects\lcd.o: .\user\inc\selfprintf.h
 .\objects\lcd.o: .\user\inc\tim.h
 .\objects\lcd.o: .\user\inc\delay.h
@@ -51,4 +52,4 @@
 .\objects\lcd.o: .\user\inc\mg200.h
 .\objects\lcd.o: .\user\inc\rc522.h
 .\objects\lcd.o: .\user\inc\esp32.h
-.\objects\lcd.o: .\user\inc\mqtt.h
+.\objects\lcd.o: .\user\inc\scheduledTasks.h

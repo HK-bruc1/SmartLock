@@ -35,6 +35,7 @@
 .\objects\iwdg.o: .\user\inc\nvic.h
 .\objects\iwdg.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
 .\objects\iwdg.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+.\objects\iwdg.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
 .\objects\iwdg.o: .\user\inc\selfprintf.h
 .\objects\iwdg.o: .\user\inc\tim.h
 .\objects\iwdg.o: .\user\inc\delay.h
@@ -51,4 +52,4 @@
 .\objects\iwdg.o: .\user\inc\mg200.h
 .\objects\iwdg.o: .\user\inc\rc522.h
 .\objects\iwdg.o: .\user\inc\esp32.h
-.\objects\iwdg.o: .\user\inc\mqtt.h
+.\objects\iwdg.o: .\user\inc\scheduledTasks.h

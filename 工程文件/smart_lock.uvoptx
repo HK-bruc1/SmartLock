@@ -1158,8 +1158,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\user\src\mqtt.c</PathWithFileName>
-      <FilenameWithoutPath>mqtt.c</FilenameWithoutPath>
+      <PathWithFileName>.\user\src\scheduledTasks.c</PathWithFileName>
+      <FilenameWithoutPath>scheduledTasks.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -1170,8 +1170,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\user\inc\mqtt.h</PathWithFileName>
-      <FilenameWithoutPath>mqtt.h</FilenameWithoutPath>
+      <PathWithFileName>.\user\inc\scheduledTasks.h</PathWithFileName>
+      <FilenameWithoutPath>scheduledTasks.h</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>

@@ -22,12 +22,12 @@ Dialog DLL:      TCM.DLL V1.34.0.0
  
 <h2>Project:</h2>
 c:\Users\admin\Desktop\智能锁项目文件夹\智能锁\工程文件\smart_lock.uvprojx
-Project File Date:  02/14/2025
+Project File Date:  02/15/2025
 
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 6 (build 750)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'Target 1'
-compiling nvic.c...
+compiling esp32.c...
 .\user\inc\led.h(15): warning:  #1-D: last line of file ends without a newline
   #endif
 .\user\inc\usart.h(16): warning:  #1-D: last line of file ends without a newline
@@ -62,17 +62,15 @@ compiling nvic.c...
   void Test_ChangeSector15Password();
 .\user\inc\rc522.h(208): warning:  #1-D: last line of file ends without a newline
   #endif
-user\src\nvic.c(86): warning:  #260-D: explicit type is missing ("int" assumed)
-  TIM1_BRK_TIM9_IRQHandler(void){
-user\src\nvic.c(301): warning:  #223-D: function "atoi" declared implicitly
-                          lock_status = atoi(lock_status_str);  // 将字符串转换为整数
-user\src\nvic.c(330): warning:  #223-D: function "atoi" declared implicitly
-                          WiFi_status = atoi(WiFi_status_str);  // 将字符串转换为整数
-user\src\nvic.c: 20 warnings, 0 errors
+.\user\inc\scheduledTasks.h(7): warning:  #1-D: last line of file ends without a newline
+  #endif
+user\src\esp32.c(254): warning:  #111-D: statement is unreachable
+      tim9_count[5] = 0;
+user\src\esp32.c: 19 warnings, 0 errors
 linking...
-Program Size: Code=33482 RO-data=129702 RW-data=256 ZI-data=2888  
+Program Size: Code=33434 RO-data=129702 RW-data=256 ZI-data=2888  
 FromELF: creating hex file...
-".\Objects\smart_lock.axf" - 0 Error(s), 20 Warning(s).
+".\Objects\smart_lock.axf" - 0 Error(s), 19 Warning(s).
 
 <h2>Software Packages used:</h2>
 

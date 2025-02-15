@@ -9,6 +9,9 @@ u8 Esp32_Wificonnect(u8 *user, u8* password);
 void open_Remote(void);
 
 void mqtt_init(void);
-u8 publish_close(void);
+void publish_close(void);
+void ProcessUartData(void);
+void ProcessESP32Data(uint8_t* data, uint16_t len);
+void clean_buff(void);
 
 #endif

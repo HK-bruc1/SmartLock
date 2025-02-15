@@ -35,6 +35,7 @@
 .\objects\at24cxx.o: .\user\inc\nvic.h
 .\objects\at24cxx.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
 .\objects\at24cxx.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+.\objects\at24cxx.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
 .\objects\at24cxx.o: .\user\inc\selfprintf.h
 .\objects\at24cxx.o: .\user\inc\tim.h
 .\objects\at24cxx.o: .\user\inc\delay.h
@@ -51,4 +52,4 @@
 .\objects\at24cxx.o: .\user\inc\mg200.h
 .\objects\at24cxx.o: .\user\inc\rc522.h
 .\objects\at24cxx.o: .\user\inc\esp32.h
-.\objects\at24cxx.o: .\user\inc\mqtt.h
+.\objects\at24cxx.o: .\user\inc\scheduledTasks.h

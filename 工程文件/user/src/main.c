@@ -124,16 +124,13 @@ int main (void){
 	Esp32_Init();
 
 
-	//连接WIFI，决定接下来是单机模式还是联网模式。
-	wifi_connect_flag = Esp32_Wificonnect("319334854","88888888");
-
-
+	//连接一次WIFI
+	wifi_connect_flag = Esp32_Wificonnect((u8 *)"319334854",(u8 *)"88888888");
 
 	//MQTT相关配置，连接到服务器后使用MQTT协议进行数据传输
 	if(wifi_connect_flag ==0){
 		mqtt_init();
 	}
-
 
 	//没有初始化完成之前不应该让屏幕亮起来
 	//声音亮度设定,没有记录就初始化
@@ -144,15 +141,6 @@ int main (void){
 
 
 	while(1){
-		u8 temp;
-		temp = Esp32_SendandReceive("AT+CWSTATE?\r\n",(u8 *)"OK",2000);
-		if(temp==0){
-			//周期性检查返回了数据
-			printf("周期性检查返回了数据\r\n");
-		}else {
-			printf("周期性检查没有返回了数据\r\n");
-		}
-
 		//赋值看门狗
 		iwdg_feed();
 		key_val = BS8116_Key_scan();
@@ -177,7 +165,16 @@ int main (void){
 			case 7:factory_reset_page(key_val);break;
 
 		}
+
+		//高速轮询定时任务的执行条件
+		task();
 		
+		//由接收中断改为在主循环中处理ESP32响应的数据，长时间在中断不合适
+		//在接收中断逻辑太长影响数据的接收，倒是可以放在空闲中断中，但是空闲中断中不能做太多事情，否则会阻塞其他中断
+		//放在主循环的话，数据稍微大一点，也和在中断中差不多。在中断太长时间是中断和主程序一起卡死。
+		//在主循环的话，数据一大，只会影响主循环的高速轮询
+		//进入while1后，数据不需要手动清理接收缓存
+		ProcessUartData();
 	}
 }
 

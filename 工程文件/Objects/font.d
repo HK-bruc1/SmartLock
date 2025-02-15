@@ -35,6 +35,7 @@
 .\objects\font.o: .\user\inc\nvic.h
 .\objects\font.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
 .\objects\font.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+.\objects\font.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
 .\objects\font.o: .\user\inc\selfprintf.h
 .\objects\font.o: .\user\inc\tim.h
 .\objects\font.o: .\user\inc\delay.h
@@ -51,4 +52,4 @@
 .\objects\font.o: .\user\inc\mg200.h
 .\objects\font.o: .\user\inc\rc522.h
 .\objects\font.o: .\user\inc\esp32.h
-.\objects\font.o: .\user\inc\mqtt.h
+.\objects\font.o: .\user\inc\scheduledTasks.h

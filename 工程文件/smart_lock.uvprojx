@@ -788,14 +788,14 @@
               <FilePath>.\user\inc\esp32.h</FilePath>
             </File>
             <File>
-              <FileName>mqtt.c</FileName>
+              <FileName>scheduledTasks.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\user\src\mqtt.c</FilePath>
+              <FilePath>.\user\src\scheduledTasks.c</FilePath>
             </File>
             <File>
-              <FileName>mqtt.h</FileName>
+              <FileName>scheduledTasks.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\user\inc\mqtt.h</FilePath>
+              <FilePath>.\user\inc\scheduledTasks.h</FilePath>
             </File>
           </Files>
         </Group>
