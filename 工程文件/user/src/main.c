@@ -78,6 +78,14 @@ u8 wifi_connect_flag = 1;
 //没有就不执行，中途连接上由相关函数把wifi_connect_flag和mqtt_connect_flag标志重新置0，主函数会再连接一次mqtt就锁上
 u8 mqtt_connect_flag = 1;
 
+//WiFi正常工作的标志位，用于MAQTT的连接周期性检查
+//这个只在WiFi周期性检查时使用的标志位，默认WiFi没有工作。
+//如果WiFi是重连的，会触发重连逻辑，MQTT的周期性检查也不会执行。只有等到下一次WiFi周期性检查
+u8 wifi_working_flag = 1;
+
+//WiFi检查完成的标志位，用于判断是否进入MQTT检查使用，默认没有检查
+u8 wifi_check_flag = 1;
+
 
 
 int main (void){
@@ -189,6 +197,7 @@ int main (void){
 			case 7:factory_reset_page(key_val);break;
 
 		}
+		
 
 		//高速轮询定时任务的执行条件
 		task();

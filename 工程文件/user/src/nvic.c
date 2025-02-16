@@ -224,7 +224,6 @@ void USART2_IRQHandler(void)
 {
     u8 temp;
 
-    
     // 检测是否为接收数据非空 (RXNE) 中断
     if (USART_GetITStatus(USART2, USART_IT_RXNE))
     {

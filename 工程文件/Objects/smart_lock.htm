@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Objects\smart_lock.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\smart_lock.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Sun Feb 16 14:02:49 2025
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Sun Feb 16 17:31:05 2025
 <BR><P>
 <H3>Maximum Stack Usage =        344 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -968,7 +968,7 @@ Global Symbols
 <LI><a href="#[103]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;erase_user_match_page
 </UL>
 
-<P><STRONG><a name="[a5]"></a>Esp32_Init</STRONG> (Thumb, 140 bytes, Stack size 8 bytes, esp32.o(i.Esp32_Init))
+<P><STRONG><a name="[a5]"></a>Esp32_Init</STRONG> (Thumb, 144 bytes, Stack size 8 bytes, esp32.o(i.Esp32_Init))
 <BR><BR>[Stack]<UL><LI>Max Depth = 184 + Unknown Stack Size
 <LI>Call Chain = Esp32_Init &rArr; ESP32_Restore &rArr; Esp32_SendandReceive &rArr; __2printf &rArr; _printf_char_file &rArr; _printf_char_common &rArr; __printf
 </UL>
@@ -1497,8 +1497,8 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[111]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rtc_init
 </UL>
 
-<P><STRONG><a name="[cf]"></a>ProcessESP32Data</STRONG> (Thumb, 212 bytes, Stack size 32 bytes, esp32.o(i.ProcessESP32Data))
-<BR><BR>[Stack]<UL><LI>Max Depth = 176 + Unknown Stack Size
+<P><STRONG><a name="[cf]"></a>ProcessESP32Data</STRONG> (Thumb, 322 bytes, Stack size 40 bytes, esp32.o(i.ProcessESP32Data))
+<BR><BR>[Stack]<UL><LI>Max Depth = 184 + Unknown Stack Size
 <LI>Call Chain = ProcessESP32Data &rArr; __2printf &rArr; _printf_char_file &rArr; _printf_char_common &rArr; __printf
 </UL>
 <BR>[Calls]<UL><LI><a href="#[a1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
@@ -1515,7 +1515,7 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[d3]"></a>ProcessUartData</STRONG> (Thumb, 30 bytes, Stack size 8 bytes, esp32.o(i.ProcessUartData))
-<BR><BR>[Stack]<UL><LI>Max Depth = 184 + Unknown Stack Size
+<BR><BR>[Stack]<UL><LI>Max Depth = 192 + Unknown Stack Size
 <LI>Call Chain = ProcessUartData &rArr; ProcessESP32Data &rArr; __2printf &rArr; _printf_char_file &rArr; _printf_char_common &rArr; __printf
 </UL>
 <BR>[Calls]<UL><LI><a href="#[99]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;clean_buff
@@ -2146,11 +2146,11 @@ Global Symbols
 
 <P><STRONG><a name="[99]"></a>clean_buff</STRONG> (Thumb, 38 bytes, Stack size 0 bytes, esp32.o(i.clean_buff))
 <BR><BR>[Called By]<UL><LI><a href="#[2e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;USART2_IRQHandler
-<LI><a href="#[11e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;task
 <LI><a href="#[115]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;mqtt_init
 <LI><a href="#[d3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ProcessUartData
 <LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Esp32_Wificonnect
 <LI><a href="#[a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Esp32_Init
+<LI><a href="#[128]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;publish_close
 <LI><a href="#[98]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Esp32_SendandReceive
 <LI><a href="#[97]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ESP32_Restore
 </UL>
@@ -2682,11 +2682,12 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[5c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[128]"></a>publish_close</STRONG> (Thumb, 16 bytes, Stack size 8 bytes, esp32.o(i.publish_close))
+<P><STRONG><a name="[128]"></a>publish_close</STRONG> (Thumb, 20 bytes, Stack size 8 bytes, esp32.o(i.publish_close))
 <BR><BR>[Stack]<UL><LI>Max Depth = 176 + Unknown Stack Size
 <LI>Call Chain = publish_close &rArr; Esp32_SendandReceive &rArr; __2printf &rArr; _printf_char_file &rArr; _printf_char_common &rArr; __printf
 </UL>
-<BR>[Calls]<UL><LI><a href="#[98]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Esp32_SendandReceive
+<BR>[Calls]<UL><LI><a href="#[99]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;clean_buff
+<LI><a href="#[98]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Esp32_SendandReceive
 </UL>
 <BR>[Called By]<UL><LI><a href="#[11e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;task
 </UL>
@@ -2848,7 +2849,6 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[a1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_SetBits
 <LI><a href="#[d1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;door_close
-<LI><a href="#[99]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;clean_buff
 <LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[128]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;publish_close
 <LI><a href="#[98]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Esp32_SendandReceive

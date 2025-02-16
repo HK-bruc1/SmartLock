@@ -203,7 +203,9 @@ void Esp32_Init(void)
     {
         // 如果设置失败，打印失败消息
         printf("Wi-Fi 重连配置指令执行失败\r\n");
-    }  
+    }
+    //清理接收缓存,
+    clean_buff();  
 }
 
 
@@ -252,6 +254,8 @@ u8 Esp32_Wificonnect(u8 *user, u8* password)
 
     //无论连接成功与否开始WiFi状态检查计时
     tim9_count[5] = 0;
+    //清理接收缓存,
+    clean_buff();
 }
 
 
@@ -310,7 +314,7 @@ u8 mqtt_init(void){
     //设置 MQTT 客户端信息，指令不会超时重传
     link_status = Esp32_SendandReceive("AT+MQTTUSERCFG=0,1,\"c96fdfa51d98473181c3525421eeeaab\",\"2hroci9d196rg88h\",\"McPl5Kyx0P\",0,0,\"\"\r\n", "OK", 2000);
     if(link_status == 0){
-        //printf("MQTT客户端信息设置成功\r\n");
+        printf("MQTT客户端信息设置成功\r\n");
         link_status = 1;
     }else{
         printf("MQTT客户端信息设置失败\r\n");
@@ -322,9 +326,13 @@ u8 mqtt_init(void){
     //手动清理接收缓存
     clean_buff();
     //连接 MQTT 服务器，自动重连MQTT服务器
+    //一般来说，AT MQTT 命令都会在 10 秒内响应，但 AT+MQTTCONN 命令除外。例如，如果路由器不能上网，命令 AT+MQTTPUB 会在 10 秒内响应
+    //但 AT+MQTTCONN 命令在网络环境不好的情况下，可能需要更多的时间用来重传数据包。
+    //当 MQTT 连接断开时，会提示 +MQTTDISCONNECTED:<LinkID> 消息。
+    //当 MQTT 连接建立时，会提示 +MQTTCONNECTED:<LinkID>,<scheme>,<"host">,port,<"path">,<reconnect> 消息。
     link_status = Esp32_SendandReceive("AT+MQTTCONN=0,\"gz-3-mqtt.iot-api.com\",1883,1\r\n", "OK", 10000);
     if(link_status == 0){
-        //printf("MQTT连接成功\r\n");
+        printf("MQTT连接成功\r\n");
         link_status = 1;
         return link_status;
     }else{
@@ -339,7 +347,7 @@ u8 mqtt_init(void){
     //订阅MQTT主题，指令不会超时重传
     link_status = Esp32_SendandReceive("AT+MQTTSUB=0,\"attributes/push\",1\r\n", "OK", 5000);
     if(link_status == 0){
-        //printf("MQTT订阅成功\r\n");
+        printf("MQTT订阅成功\r\n");
         link_status = 1;
     }else{
         printf("MQTT订阅失败\r\n");
@@ -357,6 +365,8 @@ void publish_close(void){
     //上报qos选择1，会导致上报频率过快，会被平台限流，对于智能锁来说好像也不需要严格同步
     //自己搭建的MQTT服务器另说
     Esp32_SendandReceive("AT+MQTTPUB=0,\"attributes\",\"{\\\"lock_status\\\":0}\",0,0\r\n", "OK", 5000);
+    //手动清理接收缓存
+    clean_buff();
     return ;
 }
 
@@ -366,10 +376,10 @@ void ProcessUartData(void)
 {   
     //接收响应数据的标志位还没有置1
     if (!esp32rec.flag) return;
-            
+     
     // 在这里处理完整的数据包
     ProcessESP32Data(esp32rec.buff, esp32rec.len);
-    
+
     //清理接收缓存
     clean_buff();
 }
@@ -382,8 +392,10 @@ void ProcessESP32Data(uint8_t* data, uint16_t len)
     // 原来中断中的数据处理逻辑移到这里
     char *lock_status_str;
     char *WiFi_status_str;
+    char *mqtt_status_str;
     int lock_status;
     int WiFi_status;
+    int mqtt_status;
     
     if (strstr((char *)data, "attributes/push") != NULL)
     {
@@ -430,6 +442,8 @@ void ProcessESP32Data(uint8_t* data, uint16_t len)
                //WiFi连接的标志，MQTT是否上报的标志
                wifi_connect_flag = 1;
                //连接一次mqtt后已经在主函数置位，mqtt_connect_flag = 1;
+               //WiFi工作状态也置位，只检查WiFi状态
+               wifi_working_flag = 1;
             }else if(WiFi_status==1||WiFi_status==2){
                 if(wifi_connect_flag==1){
                     printf("wifi连接恢复,开启远程开锁模式\r\n");
@@ -438,7 +452,42 @@ void ProcessESP32Data(uint8_t* data, uint16_t len)
                     mqtt_connect_flag = 0;
                 }else{
                     printf("wifi正常连接\r\n");
+                    wifi_working_flag = 0;
+                    //wifi_connect_flag保持原值
                 }
+            }
+        }
+        //程序执行到这里，WiFi的状态检查完成,可以开始判断是否检查MQTT
+        wifi_check_flag = 0;
+    }
+
+
+    // MQTT状态检查逻辑
+    mqtt_status_str = strstr((char *)data, "+MQTTCONN:");
+    if (mqtt_status_str != NULL)
+    {
+        // 找到 +CWSTATE:: 后面紧接的值
+        mqtt_status_str = strchr(mqtt_status_str, ':');  // 找到 ':' 位置
+        if (mqtt_status_str != NULL)
+        {
+            mqtt_status_str++;  // 跳过冒号
+            mqtt_status_str++;  // 跳过LinkID
+            mqtt_status_str++;  // 跳过逗号
+
+            mqtt_status = atoi(mqtt_status_str);  // 将字符串转换为整数
+
+            //printf("MQTT的状态码:%d\r\n",mqtt_status);
+
+            //只要不等于6，MQTT都是不能通信状态
+            if(mqtt_status!=6){
+               printf("MQTT断开,尝试重连\r\n");
+               //此时程序在while1中，让MQTT重连一下即可
+               //主函数会因为置位重新尝试连接mqtt
+               wifi_connect_flag = 0;
+               mqtt_connect_flag = 0;
+            }else {
+                //等于6说明MQTT连接正常
+                printf("MQTT连接正常\r\n");
             }
         }
     }
