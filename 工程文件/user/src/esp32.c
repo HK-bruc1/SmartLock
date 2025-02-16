@@ -193,7 +193,7 @@ void Esp32_Init(void)
     //手动清理接收缓存
     clean_buff();
     //设置 Wi-Fi 重连配置
-    //断开后始终尝试连接，每五分钟尝试一次，300秒，测试改为6秒
+    //断开后始终尝试连接，每6s尝试一次
     if(Esp32_SendandReceive((u8 *)"AT+CWRECONNCFG=6,0\r\n",(u8 *)"OK",10) == 0)
     {
         // 如果设置成功，打印成功消息
@@ -240,7 +240,7 @@ u8 Esp32_Wificonnect(u8 *user, u8* password)
     if(Esp32_SendandReceive((u8 *)wifi_buff, (u8 *)"OK", 5000) == 0)
     {
         // 如果ESP32返回"OK"，表示连接成功
-        printf("WIFI连接指令执行成功,远程开锁功能开启\r\n");
+        printf("WIFI连接指令执行成功,开始连接MQTT\r\n");
         return 0;  // 返回0表示连接成功
     }
     else 
@@ -297,8 +297,12 @@ void open_Remote(void)
 
 
 
-
-void mqtt_init(void){
+/**
+ * @brief MQTT连接函数，返回0代表mqtt连接失败，返回1代表mqtt连接成功
+ * 
+ * @return u8 
+ */
+u8 mqtt_init(void){
     u8 link_status = 1;
 
     //手动清理接收缓存
@@ -306,10 +310,12 @@ void mqtt_init(void){
     //设置 MQTT 客户端信息，指令不会超时重传
     link_status = Esp32_SendandReceive("AT+MQTTUSERCFG=0,1,\"c96fdfa51d98473181c3525421eeeaab\",\"2hroci9d196rg88h\",\"McPl5Kyx0P\",0,0,\"\"\r\n", "OK", 2000);
     if(link_status == 0){
-        printf("MQTT客户端信息设置成功\r\n");
+        //printf("MQTT客户端信息设置成功\r\n");
         link_status = 1;
     }else{
         printf("MQTT客户端信息设置失败\r\n");
+        link_status = 0;
+        return link_status;
     }
 
 
@@ -318,10 +324,13 @@ void mqtt_init(void){
     //连接 MQTT 服务器，自动重连MQTT服务器
     link_status = Esp32_SendandReceive("AT+MQTTCONN=0,\"gz-3-mqtt.iot-api.com\",1883,1\r\n", "OK", 10000);
     if(link_status == 0){
-        printf("MQTT连接成功\r\n");
+        //printf("MQTT连接成功\r\n");
         link_status = 1;
+        return link_status;
     }else{
         printf("MQTT连接失败\r\n");
+        link_status = 0;
+        return link_status;
     }
 
 
@@ -330,10 +339,12 @@ void mqtt_init(void){
     //订阅MQTT主题，指令不会超时重传
     link_status = Esp32_SendandReceive("AT+MQTTSUB=0,\"attributes/push\",1\r\n", "OK", 5000);
     if(link_status == 0){
-        printf("MQTT订阅成功\r\n");
+        //printf("MQTT订阅成功\r\n");
         link_status = 1;
     }else{
         printf("MQTT订阅失败\r\n");
+        link_status = 0;
+        return link_status;
     }
     //手动清理接收缓存
     clean_buff();
@@ -343,7 +354,9 @@ void mqtt_init(void){
 //上报关门数据
 void publish_close(void){
     //指令超时重传,至少收到一次指令，不然云端数据不同步
-    Esp32_SendandReceive("AT+MQTTPUB=0,\"attributes\",\"{\\\"lock_status\\\":0}\",1,0\r\n", "OK", 5000);
+    //上报qos选择1，会导致上报频率过快，会被平台限流，对于智能锁来说好像也不需要严格同步
+    //自己搭建的MQTT服务器另说
+    Esp32_SendandReceive("AT+MQTTPUB=0,\"attributes\",\"{\\\"lock_status\\\":0}\",0,0\r\n", "OK", 5000);
     return ;
 }
 
@@ -416,11 +429,13 @@ void ProcessESP32Data(uint8_t* data, uint16_t len)
                printf("wifi断开\r\n");
                //WiFi连接的标志，MQTT是否上报的标志
                wifi_connect_flag = 1;
+               //连接一次mqtt后已经在主函数置位，mqtt_connect_flag = 1;
             }else if(WiFi_status==1||WiFi_status==2){
                 if(wifi_connect_flag==1){
-                    printf("wifi连接恢复,复位开启远程开锁模式\r\n");
-                    //之前断开过，需要重连MQTT，马上软件复位，有网之后复位是为了连接MQTT
-                    NVIC_SystemReset();
+                    printf("wifi连接恢复,开启远程开锁模式\r\n");
+                    //主函数会因为置位重新尝试连接mqtt
+                    wifi_connect_flag = 0;
+                    mqtt_connect_flag = 0;
                 }else{
                     printf("wifi正常连接\r\n");
                 }

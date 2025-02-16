@@ -489,10 +489,19 @@ void admin_page(u8 key)
 		LCD_dis(5,183,"【5】恢复出厂设置",LIGHTBLUE,0,0xff,16);
 		LCD_dis(5,208,"【#】退出管理员界面",LIGHTBLUE,0,0xff,16);
 
+		//进来后开始计时10s不切换界面即无操作，就返回待开门界面
+		tim9_count[6] = 0;
+
         //锁住页面，进来后只刷新一次页面
         ad_flag = 0;
     }
 
+	//一直判断是否达到无操作返回条件,每一次进来就会重新计时
+	if(tim9_count[6]>=10000){
+		printf("无操作:返回主界面!\r\n");
+		page_mode = 1;ad_flag = 1;
+		return;
+	}
 
 
 

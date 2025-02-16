@@ -13,6 +13,16 @@ void task(void){
         Esp32_SendandReceive((u8 *)"AT+CWSTATE?\r\n",(u8 *)"OK",5000);
     }
 
+    //周期性检查MQTT的状态,在WiFi没有断开的情况下检查
+    if(tim9_count[5]>=60000){
+        //到时间就归零
+        tim9_count[5] = 0;
+        printf("周期性检查WiFi状态\r\n");
+        //清理接收缓存
+        clean_buff();
+        Esp32_SendandReceive((u8 *)"AT+CWSTATE?\r\n",(u8 *)"OK",5000);
+    }
+
     //自动关门程序
     if(tim9_count[4]>=5000 && autoCloseTimerFlag==1){
         //让计时无效

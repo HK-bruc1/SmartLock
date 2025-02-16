@@ -7,7 +7,7 @@
 USART_t usart1;
 
 //定时器9的定时中断事件器
-volatile u16 tim9_count [10];
+volatile u32 tim9_count [10];
 
 //是否开启字库更新标志
 u8 zk_flag = 0;
@@ -74,6 +74,10 @@ u8 autoCloseTimerFlag = 0;
 //复位后自动变1，不用管
 u8 wifi_connect_flag = 1;
 
+//一开始有WiFi的话，连接一次mqtt就锁上
+//没有就不执行，中途连接上由相关函数把wifi_connect_flag和mqtt_connect_flag标志重新置0，主函数会再连接一次mqtt就锁上
+u8 mqtt_connect_flag = 1;
+
 
 
 int main (void){
@@ -127,9 +131,16 @@ int main (void){
 	//连接一次WIFI
 	wifi_connect_flag = Esp32_Wificonnect((u8 *)"319334854",(u8 *)"88888888");
 
+	//初始状态MAQTT需要连接
 	//MQTT相关配置，连接到服务器后使用MQTT协议进行数据传输
 	if(wifi_connect_flag ==0){
-		mqtt_init();
+		//保证while不会在WiFi没有断开的情况下再连接MQTT
+		mqtt_connect_flag = 1;
+		if(mqtt_init()==1){
+			printf("MQTT服务器连接成功!远程开锁功能开启！\r\n");
+		}else {
+			printf("MQTT服务器连接失败!远程开锁功能关闭！\r\n");
+		}
 	}
 
 	//没有初始化完成之前不应该让屏幕亮起来
@@ -143,6 +154,19 @@ int main (void){
 	while(1){
 		//赋值看门狗
 		iwdg_feed();
+
+		//这个要等到WiFi周期性检查WiFi重新连接才会连接MQTT
+		//MQTT相关配置，连接到服务器后使用MQTT协议进行数据传输
+		if(wifi_connect_flag ==0 && mqtt_connect_flag ==0){
+			//保证只执行一次
+			mqtt_connect_flag = 1;
+			if(mqtt_init()==1){
+				printf("MQTT服务器连接成功!远程开锁功能开启！\r\n");
+			}else {
+				printf("MQTT服务器连接失败!远程开锁功能关闭！\r\n");
+			}
+		}
+
 		key_val = BS8116_Key_scan();
 		
 		

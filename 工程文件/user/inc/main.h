@@ -70,7 +70,7 @@ typedef struct
 
 //所有外部变量声明
 extern USART_t usart1;
-extern volatile u16 tim9_count [10];
+extern volatile u32 tim9_count [10];
 extern char at24c02_rec_str[];
 extern u8 zk_flag;
 extern u16 page_mode;
@@ -89,7 +89,7 @@ extern u8 voice_cmd[];
 extern USART2_RECSTR esp32rec;
 extern u8 autoCloseTimerFlag;
 extern u8 wifi_connect_flag;
-
+extern u8 mqtt_connect_flag;
 
 
 
