@@ -86,6 +86,9 @@ u8 wifi_working_flag = 1;
 //WiFi检查完成的标志位，用于判断是否进入MQTT检查使用，默认没有检查
 u8 wifi_check_flag = 1;
 
+//更新时间的标志位，只在进入主循环后，只执行一次，后面等待定时任务触发
+u8 update_time_flag = 1;
+
 
 
 int main (void){
@@ -142,8 +145,13 @@ int main (void){
 	//初始状态MAQTT需要连接
 	//MQTT相关配置，连接到服务器后使用MQTT协议进行数据传输
 	if(wifi_connect_flag ==0){
+		//WiFi连接的情况下一定能获取SNTP服务器的网络时间到ESP32
+		//时间同步设置,更新本机时间等进入主循环之后吧
+		set_online_time();
+
 		//保证while不会在WiFi没有断开的情况下再连接MQTT
-		mqtt_connect_flag = 1;
+		//mqtt_connect_flag = 1;，默认就是1
+
 		if(mqtt_init()==1){
 			printf("MQTT服务器连接成功!远程开锁功能开启！\r\n");
 		}else {
@@ -163,16 +171,26 @@ int main (void){
 		//赋值看门狗
 		iwdg_feed();
 
+		//这个也不需要解析数据，而且命令之后被手动删除了
 		//这个要等到WiFi周期性检查WiFi重新连接才会连接MQTT
 		//MQTT相关配置，连接到服务器后使用MQTT协议进行数据传输
 		if(wifi_connect_flag ==0 && mqtt_connect_flag ==0){
-			//保证只执行一次
+			//保证进入主循环只执行一次，之后根据MQTT的周期性检查，如果WiFi断开，MQTT也会断开，需要重新连接
 			mqtt_connect_flag = 1;
 			if(mqtt_init()==1){
 				printf("MQTT服务器连接成功!远程开锁功能开启！\r\n");
 			}else {
 				printf("MQTT服务器连接失败!远程开锁功能关闭！\r\n");
 			}
+		}
+
+		//进入主循环之后，由于初始化时获取了从SNTP服务器的网络时间，所以这里可以从ESP32的RTC更新时间
+		//其他更新交给定时任务即可
+		if(update_time_flag == 1){
+			//锁住
+			update_time_flag = 0;
+			Esp32_SendandReceive("AT+CIPSNTPTIME?\r\n","OK", 3000);
+			//这里不需要手动删除，等到数据解析后自动删除
 		}
 
 		key_val = BS8116_Key_scan();

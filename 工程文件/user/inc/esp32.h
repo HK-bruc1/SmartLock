@@ -13,5 +13,6 @@ void publish_close(void);
 void ProcessUartData(void);
 void ProcessESP32Data(uint8_t* data, uint16_t len);
 void clean_buff(void);
+void set_online_time(void);
 
 #endif

@@ -314,7 +314,7 @@ u8 mqtt_init(void){
     //设置 MQTT 客户端信息，指令不会超时重传
     link_status = Esp32_SendandReceive("AT+MQTTUSERCFG=0,1,\"c96fdfa51d98473181c3525421eeeaab\",\"2hroci9d196rg88h\",\"McPl5Kyx0P\",0,0,\"\"\r\n", "OK", 2000);
     if(link_status == 0){
-        printf("MQTT客户端信息设置成功\r\n");
+        //printf("MQTT客户端信息设置成功\r\n");
         link_status = 1;
     }else{
         printf("MQTT客户端信息设置失败\r\n");
@@ -332,9 +332,8 @@ u8 mqtt_init(void){
     //当 MQTT 连接建立时，会提示 +MQTTCONNECTED:<LinkID>,<scheme>,<"host">,port,<"path">,<reconnect> 消息。
     link_status = Esp32_SendandReceive("AT+MQTTCONN=0,\"gz-3-mqtt.iot-api.com\",1883,1\r\n", "OK", 10000);
     if(link_status == 0){
-        printf("MQTT连接成功\r\n");
+        //printf("MQTT连接成功\r\n");
         link_status = 1;
-        return link_status;
     }else{
         printf("MQTT连接失败\r\n");
         link_status = 0;
@@ -347,7 +346,7 @@ u8 mqtt_init(void){
     //订阅MQTT主题，指令不会超时重传
     link_status = Esp32_SendandReceive("AT+MQTTSUB=0,\"attributes/push\",1\r\n", "OK", 5000);
     if(link_status == 0){
-        printf("MQTT订阅成功\r\n");
+        //printf("MQTT订阅成功\r\n");
         link_status = 1;
     }else{
         printf("MQTT订阅失败\r\n");
@@ -356,6 +355,7 @@ u8 mqtt_init(void){
     }
     //手动清理接收缓存
     clean_buff();
+    return link_status;
 }
 
 
@@ -364,9 +364,8 @@ void publish_close(void){
     //指令超时重传,至少收到一次指令，不然云端数据不同步
     //上报qos选择1，会导致上报频率过快，会被平台限流，对于智能锁来说好像也不需要严格同步
     //自己搭建的MQTT服务器另说
+    //clean_buff();主循环中的数据都会经过数据解析后清理不需要自己清理
     Esp32_SendandReceive("AT+MQTTPUB=0,\"attributes\",\"{\\\"lock_status\\\":0}\",0,0\r\n", "OK", 5000);
-    //手动清理接收缓存
-    clean_buff();
     return ;
 }
 
@@ -393,10 +392,16 @@ void ProcessESP32Data(uint8_t* data, uint16_t len)
     char *lock_status_str;
     char *WiFi_status_str;
     char *mqtt_status_str;
+    char* time_str;
     int lock_status;
     int WiFi_status;
     int mqtt_status;
+
+    //接收ESP32响应的时间
+    RTC_t esp32_time = {0};
     
+    
+
     if (strstr((char *)data, "attributes/push") != NULL)
     {
         lock_status_str = strstr((char *)data, "\"lock_status\":");
@@ -446,7 +451,7 @@ void ProcessESP32Data(uint8_t* data, uint16_t len)
                wifi_working_flag = 1;
             }else if(WiFi_status==1||WiFi_status==2){
                 if(wifi_connect_flag==1){
-                    printf("wifi连接恢复,开启远程开锁模式\r\n");
+                    printf("wifi连接恢复,开始连接MQTT\r\n");
                     //主函数会因为置位重新尝试连接mqtt
                     wifi_connect_flag = 0;
                     mqtt_connect_flag = 0;
@@ -491,6 +496,59 @@ void ProcessESP32Data(uint8_t* data, uint16_t len)
             }
         }
     }
+
+
+    //解析ESP32回传的时间数据
+    time_str = strstr((char *)data, "+CIPSNTPTIME:");
+    if(time_str != NULL)
+    {
+        time_str += 13; // 跳过"+CIPSNTPTIME:"
+
+        // 解析星期
+        for(int i = 0; i < 7; i++) {
+            if(strncmp(time_str, week_str[i], 3) == 0) {
+                esp32_time.week = (i + 1) % 7; // 转换为0-6
+                break;
+            }
+        }
+
+        time_str += 4; // 跳过"Mon "
+
+        // 解析月份
+        for(int i = 0; i < 12; i++) {
+            if(strncmp(time_str, month_str[i], 3) == 0) {
+                esp32_time.mon = i + 1;
+                break;
+            }
+        }
+
+        time_str += 4; // 跳过"Feb "
+
+        // 解析日期
+        esp32_time.day = atoi(time_str);
+        while(*time_str != ' ') time_str++; // 跳到空格
+        time_str++; // 跳过空格
+
+        // 解析时间
+        esp32_time.hour = atoi(time_str);
+        while(*time_str != ':') time_str++; time_str++;
+        esp32_time.min = atoi(time_str);
+        while(*time_str != ':') time_str++; time_str++;
+        esp32_time.sec = atoi(time_str);
+        while(*time_str != ' ') time_str++; time_str++;
+
+        // 解析年份
+        int year = atoi(time_str);
+        esp32_time.year = year - 2000; // 转换为两位数年份
+
+        //测试一下获取的时间
+        printf("当前时间: 20%02d-%02d-%02d %02d:%02d:%02d\n",
+            esp32_time.year, esp32_time.mon, esp32_time.day,
+            esp32_time.hour, esp32_time.min, esp32_time.sec);
+        //解析完更新时间到本机RTC
+        //RTC可以设置到一个指定值,备份域寄存器中的标志位不变，不断电复位的情况下不会触发获取系统编译时间
+        rtc_set_custom_time(esp32_time);
+    }
 }
 
 
@@ -504,6 +562,33 @@ void clean_buff(void){
     esp32rec.len = 0;
     //数据处理完成，把标志位置0，等待下一次接收
     esp32rec.flag = 0;
+}
+
+
+//设置ESP32的WiFi时间，online
+void set_online_time(void){
+    //时间同步状态
+    u8 TIME_UPDATED_status = 1;
+
+    //这个是在初始化时，主循环之前，所以手动需要清空接收缓冲区
+    clean_buff();
+    //启用 SNTP 功能
+    //AT 命令口输出 +TIME_UPDATED，代表时间已同步(在ESP32中：SNTP 获取到的时间存储在 RTC 区域，因此在软重启（芯片不掉电）后，时间不会丢失。)
+    //此时您可以发送 AT+CIPSNTPTIME? 命令查询当前时间。
+    TIME_UPDATED_status = Esp32_SendandReceive("AT+CIPSNTPCFG=1,8,\"ntp1.aliyun.com\",\"ntp2.aliyun.com\",\"ntp.ntsc.ac.cn\"\r\n","+TIME_UPDATED", 5000);
+    //这个是直接在Esp32_SendandReceive函数中检验的，不用担心数据解析没完成
+    if(TIME_UPDATED_status==0){
+        clean_buff();
+        TIME_UPDATED_status = 0;
+        //设置一下SNTP时间同步的间隔，一个小时同步到ESP32的RTC一次
+        TIME_UPDATED_status = Esp32_SendandReceive("AT+CIPSNTPINTV=3600\r\n","OK", 3000);
+        if(TIME_UPDATED_status!=0){
+            printf("ESP32的SNTP时间同步间隔设置失败\r\n");
+        }
+    }else{
+        printf("ESP32的SNTP时间同步失败\r\n");
+    }
+
 }
 
 

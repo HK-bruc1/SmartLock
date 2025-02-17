@@ -1177,8 +1177,6 @@ MIFARE Std 1k卡片特定配置
 
 4.还有一些芯片自带的LCD驱动接口LTDC控制器，比如F429等
 
-
-
 ## 如何快速使用一个外设
 
 使用项目中的模块作为实例说明，在各点展开。
@@ -1556,14 +1554,284 @@ MQTT_Disconnect();                    // 断开MQTT连接
 #### 测试流程
 
 - **先连接 MQTT 服务器**
-
 - **订阅主题 `device/control`**
-
 - **在物联网平台发送消息到 `device/control`**
-
 - **ESP32 会自动接收**
-
 - **ESP32 上报数据到 `sensor/data`**
+
+## 利用ESP32 AT固件获取网络时间并更新本机系统
+
+ESP32 AT 固件支持 `AT+CIPSNTPTIME?` 命令来获取网络时间（NTP时间）。你需要确保 ESP32 已连接到互联网，并配置了 NTP 服务器。
+
+1. 前提是已经连接了WiFi。
+
+2. 启用 NTP 功能（如果未启用）
+
+```
+AT+CIPSNTPCFG=1,8,"ntp1.aliyun.com","ntp2.aliyun.com","ntp.ntsc.ac.cn"
+```
+
+其中：
+
+- `1`：启用 NTP 功能
+
+- `8`：UTC+8（北京时间）
+
+- `"ntp1.aliyun.com"、"ntp2.aliyun.com"、"ntp.ntsc.ac.cn"`：多个备用 NTP 服务器
+
+- ```
+  回送信息格式：
+  AT+CIPSNTPCFG=1,8,"ntp1.aliyun.com","ntp2.aliyun.com","ntp.ntsc.ac.cn"
+  
+  OK
+  +TIME_UPDATED
+  ```
+
+3. 获取网络时间
+
+```
+AT+CIPSNTPTIME?
+```
+
+如果成功，ESP32 会返回当前的网络时间，例如：
+
+```
+回送格式：
+AT+CIPSNTPTIME?
++CIPSNTPTIME:Mon Feb 17 10:56:27 2025
+OK
+```
+
+### 官方文档的注意事项说明
+
+- 由于 SNTP 是基于 UDP 协议发送请求和接收回复，当网络丢包时，会导致 ESP32 的时间无法及时同步。一旦 AT 命令口输出 [+TIME_UPDATED](https://docs.espressif.com/projects/esp-at/zh_CN/latest/esp32/AT_Command_Set/index.html#at-messages-report)，代表时间已同步，此时您可以发送 [AT+CIPSNTPTIME?](https://docs.espressif.com/projects/esp-at/zh_CN/latest/esp32/AT_Command_Set/TCP-IP_AT_Commands.html?highlight=cipsntpcfg#cmd-sntpt) 命令查询当前时间。
+
+### 实现
+
+```c
+// 月份字符串与数字的映射表
+const char* month_str[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+                          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+                          
+// 星期字符串与数字的映射表
+const char* week_str[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+
+void ProcessNTPTime(uint8_t* data, uint16_t len, RTC_t* time)
+{
+    char* time_str = strstr((char *)data, "+CIPSNTPTIME:");
+    if(time_str != NULL)
+    {
+        time_str += 13; // 跳过"+CIPSNTPTIME:"
+        
+        // 解析星期
+        for(int i = 0; i < 7; i++) {
+            if(strncmp(time_str, week_str[i], 3) == 0) {
+                time->week = (i + 1) % 7; // 转换为0-6
+                break;
+            }
+        }
+        
+        time_str += 4; // 跳过"Mon "
+        
+        // 解析月份
+        for(int i = 0; i < 12; i++) {
+            if(strncmp(time_str, month_str[i], 3) == 0) {
+                time->mon = i + 1;
+                break;
+            }
+        }
+        
+        time_str += 4; // 跳过"Feb "
+        
+        // 解析日期
+        time->day = atoi(time_str);
+        while(*time_str != ' ') time_str++; // 跳到空格
+        time_str++; // 跳过空格
+        
+        // 解析时间
+        time->hour = atoi(time_str);
+        while(*time_str != ':') time_str++; time_str++;
+        time->min = atoi(time_str);
+        while(*time_str != ':') time_str++; time_str++;
+        time->sec = atoi(time_str);
+        while(*time_str != ' ') time_str++; time_str++;
+        
+        // 解析年份
+        int year = atoi(time_str);
+        time->year = year - 2000; // 转换为两位数年份
+    }
+}
+```
+
+使用方法：
+
+```
+RTC_t custom_time = {0}; // 初始化为0
+ProcessNTPTime(received_data, data_length, &custom_time);
+```
+
+这个函数的特点：
+
+1. 使用字符串对照表来解析月份和星期
+2. 按照ESP32返回的格式逐段解析时间信息
+3. 会自动将四位数年份转换为两位数存储
+4. 星期值会被转换为0-6的范围
+
+这个函数会解析类似 "Mon Feb 17 11:42:04 2025" 这样格式的时间字符串，并将解析结果存储到你的RTC结构体中。要注意的是，函数假设输入的时间格式是固定的，如果格式发生变化可能需要相应修改解析逻辑。
+
+**这样能解析到吗？回送的数据有空格和0D 0A？**
+
+空格和回车换行符(0D 0A)不会影响解析，因为我们使用的 `strstr()` 函数会找到 "+CIPSNTPTIME:" 的准确位置，然后从那里开始解析。让我们来分析一下数据：
+
+```
+41 54 2B 43 49 50 53 4E 54 50 54 49 4D 45 3F            // "AT+CIPSNTPTIME?"
+0D 0A                                                    // 回车换行
+2B 43 49 50 53 4E 54 50 54 49 4D 45 3A                 // "+CIPSNTPTIME:"
+4D 6F 6E 20                                             // "Mon "
+46 65 62 20                                             // "Feb "
+31 37 20                                                // "17 "
+31 31 3A 34 34 3A 35 35 20                             // "11:44:55 "
+32 30 32 35                                             // "2025"
+0D 0A                                                   // 回车换行
+4F 4B 0D 0A                                            // "OK" + 回车换行
+```
+
+不过我们可以加一些打印来验证解析是否正确：
+
+```c
+void ProcessNTPTime(uint8_t* data, uint16_t len, RTC_t* time)
+{
+    char* time_str = strstr((char *)data, "+CIPSNTPTIME:");
+    if(time_str != NULL)
+    {
+        printf("找到时间字符串：%s\r\n", time_str); // 打印找到的完整字符串
+        
+        time_str += 13; // 跳过"+CIPSNTPTIME:"
+        printf("跳过标识符后：%s\r\n", time_str); // 打印跳过标识符后的字符串
+        
+        // 解析星期
+        for(int i = 0; i < 7; i++) {
+            if(strncmp(time_str, week_str[i], 3) == 0) {
+                time->week = (i + 1) % 7;
+                printf("解析到星期：%d\r\n", time->week);
+                break;
+            }
+        }
+        
+        time_str += 4; // 跳过"Mon "
+        printf("跳过星期后：%s\r\n", time_str);
+        
+        // 解析月份
+        for(int i = 0; i < 12; i++) {
+            if(strncmp(time_str, month_str[i], 3) == 0) {
+                time->mon = i + 1;
+                printf("解析到月份：%d\r\n", time->mon);
+                break;
+            }
+        }
+        
+        time_str += 4; // 跳过"Feb "
+        printf("跳过月份后：%s\r\n", time_str);
+        
+        // 解析日期
+        time->day = atoi(time_str);
+        printf("解析到日期：%d\r\n", time->day);
+        while(*time_str != ' ') time_str++;
+        time_str++;
+        
+        // 解析时间
+        time->hour = atoi(time_str);
+        printf("解析到小时：%d\r\n", time->hour);
+        while(*time_str != ':') time_str++; time_str++;
+        time->min = atoi(time_str);
+        printf("解析到分钟：%d\r\n", time->min);
+        while(*time_str != ':') time_str++; time_str++;
+        time->sec = atoi(time_str);
+        printf("解析到秒数：%d\r\n", time->sec);
+        while(*time_str != ' ') time_str++; time_str++;
+        
+        // 解析年份
+        int year = atoi(time_str);
+        time->year = year - 2000;
+        printf("解析到年份：%d\r\n", time->year);
+    }
+    else
+    {
+        printf("未找到时间字符串\r\n");
+    }
+}
+```
+
+### 优化
+
+如果是运行在 STM32 这样的嵌入式设备上，当前的字符串解析方法确实有些耗时，主要原因是：
+
+1. 使用多个 `strstr()` 和 `strncmp()` 进行字符串搜索
+2. 使用 `atoi()` 进行字符串到数字的转换
+3. 使用循环寻找特定字符的位置
+
+可以优化成直接获取固定位置的数据，因为 ESP32 返回的数据格式是固定的：
+
+```
+void ProcessNTPTime_Fast(uint8_t* data, uint16_t len, RTC_t* time)
+{
+    char* time_str = strstr((char *)data, "+CIPSNTPTIME:");
+    if(time_str != NULL)
+    {
+        // 跳过"+CIPSNTPTIME:"后，数据格式固定为：
+        // "Mon Feb 17 11:42:04 2025"
+        //  0   4   8  11       20
+        time_str += 13;  
+        
+        // 直接通过位置解析星期 (Mon=1, Tue=2, etc)
+        switch(time_str[0]) {
+            case 'M': time->week = 1; break; // Mon
+            case 'T': time->week = time_str[1]=='u' ? 2 : 4; break; // Tue or Thu
+            case 'W': time->week = 3; break; // Wed
+            case 'F': time->week = 5; break; // Fri
+            case 'S': time->week = time_str[1]=='a' ? 6 : 0; break; // Sat or Sun
+        }
+        
+        // 直接通过位置解析月份
+        switch(time_str[4]) {
+            case 'J': time->mon = time_str[5]=='a' ? 1 : (time_str[6]=='n' ? 6 : 7); break; // Jan or Jun or Jul
+            case 'F': time->mon = 2; break; // Feb
+            case 'M': time->mon = time_str[5]=='a' ? 3 : 5; break; // Mar or May
+            case 'A': time->mon = time_str[5]=='p' ? 4 : 8; break; // Apr or Aug
+            case 'S': time->mon = 9; break; // Sep
+            case 'O': time->mon = 10; break; // Oct
+            case 'N': time->mon = 11; break; // Nov
+            case 'D': time->mon = 12; break; // Dec
+        }
+        
+        // 日期（直接计算两位数）
+        time->day = (time_str[8]-'0')*10 + (time_str[9]-'0');
+        
+        // 时间
+        time->hour = (time_str[11]-'0')*10 + (time_str[12]-'0');
+        time->min = (time_str[14]-'0')*10 + (time_str[15]-'0');
+        time->sec = (time_str[17]-'0')*10 + (time_str[18]-'0');
+        
+        // 年份（直接计算四位数，然后减去2000）
+        int year = (time_str[20]-'0')*1000 + (time_str[21]-'0')*100 + 
+                  (time_str[22]-'0')*10 + (time_str[23]-'0');
+        time->year = year - 2000;
+    }
+}
+```
+
+这个优化版本的特点：
+
+1. 除了初始定位外，不再使用字符串搜索函数
+2. 用直接的字符计算替代 `atoi()`
+3. 通过固定偏移量直接访问数据，不再使用循环查找
+4. 使用 `switch` 语句快速匹配月份和星期
+
+这样的实现会快很多，但要注意：
+
+- 必须确保 ESP32 返回的数据格式始终不变
+- 数据必须完整，否则可能访问越界
+- 建议加入长度检查以提高安全性
 
 ## 单位的区别
 
@@ -1613,11 +1881,11 @@ MQTT_Disconnect();                    // 断开MQTT连接
 
 ### 非阻塞式自动关门
 
-**我有一个SMT32项目，是智能门锁，我想在看门之后实现非阻塞式自动关门： 我的想法是在一个1ms进一次中断里，使用变量++的方式，在成功开门时，将变量赋值为0，在中断里判断值是否大于等于5000，满足条件就执行关门程序，效果能实现，但是变量一直累加，因为无符号整型的环形结构，导致关门操作每隔一段时间会执行一次，你有什么好的方案？**
+**我有一个SMT32项目，是智能门锁，我想在看门之后实现非阻塞式自动关门： 我的想法是在一个1ms进一次中断里，使用变量++的方式，在成功开门时，将变量赋值为0，在主循环的定时任务中判断值是否大于等于5000，满足条件就执行关门程序，效果能实现，但是变量一直累加，因为无符号整型的环形结构，导致关门操作每隔一段时间会执行一次，你有什么好的方案？**
 
 **事件标志法**：
 
-- 可以设置一个标志位（如开门事件标志），在开门时将其设为1，在定时器中断里判断标志位是否为1。如果标志位为1且已经过了预定的延时（比如5秒），则执行关门操作并重置标志位。
+- 可以设置一个标志位（如开门事件标志），在开门时将其设为1，在主循环中判断标志位是否为1。如果标志位为1且已经过了预定的延时（比如5秒），则执行关门操作并重置标志位。
 
 ### 初始化的先后关系
 

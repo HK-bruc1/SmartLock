@@ -14,6 +14,9 @@ typedef struct rtc
 	
 }RTC_t;
 
+extern const char* month_str[];
+extern const char* week_str[];
+
 
 
 void rtc_init(void);

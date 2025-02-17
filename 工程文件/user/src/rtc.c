@@ -1,6 +1,12 @@
 #include "main.h"                  // Device header
 
-
+//解析ESP32数据使用
+// 月份字符串与数字的映射表
+const char* month_str[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+	"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+// 星期字符串与数字的映射表
+const char* week_str[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+//////////////////////////////////////////////////////////////////////////////
 
 RTC_t sys_time ={0};
 

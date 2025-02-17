@@ -50,4 +50,20 @@ void task(void){
         }
         printf("自动关门\r\n");
     }
+
+    
+    //自动从ESP32获取时间到stm32,一个小时获取一次
+    //这个不需要WiFi,ESP32每一个小时都会获取一次WiFi时间
+    //那么STM32的RTC只需要从ESP32中获取即可，校准不归STM23管
+    if(tim9_count[7]>=3600000){
+        tim9_count[7] = 0;
+        u8 get_time_status = 1;
+        //数据处理交给接收中断的数据处理
+        //clean_buff();主循环中的数据都会经过数据解析后清理不需要自己清理
+        get_time_status = Esp32_SendandReceive("AT+CIPSNTPTIME?\r\n","OK",2000);
+        if(get_time_status == 1){
+            //获取时间失败
+            printf("本机同步ESP32时间失败\r\n");
+        }
+    }
 }

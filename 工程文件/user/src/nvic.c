@@ -108,6 +108,9 @@ TIM1_BRK_TIM9_IRQHandler(void){
         tim9_count[5]++;
         //管理员界面自动关闭，在page2超过10s自动回到带开门界面
         tim9_count[6]++;
+        //定时从ESP32的RTC中获取时间到STM32本机的RTC中
+        tim9_count[7]++;
+
 
 
 
