@@ -238,64 +238,29 @@ u8 Esp32_Wificonnect(u8 *user, u8* password)
 
 	//手动清理接收缓存
     clean_buff(); 
+
     /* 发送连接WIFI的AT命令，并等待响应 */
     if(Esp32_SendandReceive((u8 *)wifi_buff, (u8 *)"OK", 5000) == 0)
     {
         // 如果ESP32返回"OK"，表示连接成功
         printf("WIFI连接指令执行成功,开始连接MQTT\r\n");
+        
+        //如果初始化没有连接WiFi的话，ESP32并不会重连，所以没有必要WiFi状态检查了
+        //开启WiFi检查计时
+        tim9_count[5] = 0;
+        wifi_check_start = 1;
+
+		//手动清理接收缓存
+		clean_buff();
         return 0;  // 返回0表示连接成功
     }
     else 
     {
         // 如果连接失败，打印失败消息
         printf("WIFI连接指令执行失败,远程开锁功能失效\r\n");
+		//手动清理接收缓存
+		clean_buff();
         return 1;  // 返回1表示连接失败
-    }
-
-    //无论连接成功与否开始WiFi状态检查计时
-    tim9_count[5] = 0;
-    //清理接收缓存,
-    clean_buff();
-}
-
-
-
-
-/***********************************************
-*函数名    ：open_Remote
-*函数功能  ：远程开锁
-*函数参数  ：无
-*函数返回值：无
-*函数描述  ：
-*   该函数用于解析 ESP32 串口接收到的数据，并根据数据中的指令控制门锁的开关状态。
-*   这个函数不知道还是否有用？因为可以在接收中断里直接判断的，那么中断的判断是什么意思？
-***********************************************/
-void open_Remote(void)
-{
-    u8 sta_lock;  // 记录门锁状态（'1' 表示开锁，'0' 表示关锁）
-    char *adrr = 0;  // 指向解析到的 "smart_lock" 关键词位置的指针
-
-    // 检查 ESP32 串口是否接收到数据，中断接收完成会把标志位置1
-    if (esp32rec.flag == 1)
-    {
-        esp32rec.flag = 0;  // 清除接收标志，防止重复处理数据
-
-        // 在接收的缓冲区中查找 "smart_lock" 关键字
-        adrr = strstr((char *)esp32rec.buff, "\"smart_lock\"");
-        
-        // 提取 "smart_lock" 关键字后面的状态值（'1' 或 '0'）
-        sta_lock = *(adrr + strlen("\"smart_lock\"") + 1);
-
-        // 根据状态值执行相应操作
-        if (sta_lock == '1')  // 远程开锁指令
-        {
-            voice(DOOROPEN_SUCCESS);  // 播放开锁提示音
-            door_open();  // 执行开门操作，这里高速轮询没有办法延迟，使用static修饰，加定时器，也不是不行。
-        }
-        else if (sta_lock == '0')  // 远程关锁指令
-        {
-            door_close();  // 执行关门操作
-        }
     }
 }
 

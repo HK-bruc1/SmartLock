@@ -89,6 +89,9 @@ u8 wifi_check_flag = 1;
 //更新时间的标志位，只在进入主循环后，只执行一次，后面等待定时任务触发
 u8 update_time_flag = 1;
 
+//如果初始化没有连接WiFi的话，ESP32并不会重连，所以没有必要WiFi状态检查了,默认没有连接WiFi，只在初始化主循环之前使用
+u8 wifi_check_start = 0;
+
 
 
 int main (void){
