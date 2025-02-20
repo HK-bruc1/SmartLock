@@ -156,8 +156,10 @@ int main (void){
 		//mqtt_connect_flag = 1;，默认就是1
 
 		if(mqtt_init()==1){
+			//给一个标志位，用于判断是否已经连接MQTT
 			printf("MQTT服务器连接成功!远程开锁功能开启！\r\n");
 		}else {
+			//给一个标志位，用于判断是否已经连接MQTT
 			printf("MQTT服务器连接失败!远程开锁功能关闭！\r\n");
 		}
 	}

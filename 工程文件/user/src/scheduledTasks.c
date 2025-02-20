@@ -50,6 +50,8 @@ void task(void){
         door_close();
         LED4_OFF;
         //上报数据，前提是WiFi连接了，不然为了云端同步会一直超时重传！
+        //应该是MQTT连接上了才上报数据，当然WiFi也连接上了。
+        //所以应该使用MQTT连接成功的标志位来判断
         if(wifi_connect_flag==0){
             publish_close();
         }

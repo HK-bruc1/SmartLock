@@ -192,6 +192,7 @@ void Esp32_Init(void)
 
     //手动清理接收缓存
     clean_buff();
+    //这个只能在初始化时连接了WiFi后断开会重连。
     //设置 Wi-Fi 重连配置
     //断开后始终尝试连接，每6s尝试一次
     if(Esp32_SendandReceive((u8 *)"AT+CWRECONNCFG=6,0\r\n",(u8 *)"OK",10) == 0)
@@ -278,8 +279,12 @@ u8 mqtt_init(void){
     clean_buff(); 
     //设置 MQTT 客户端信息，指令不会超时重传
     link_status = Esp32_SendandReceive("AT+MQTTUSERCFG=0,1,\"c96fdfa51d98473181c3525421eeeaab\",\"2hroci9d196rg88h\",\"McPl5Kyx0P\",0,0,\"\"\r\n", "OK", 2000);
+    
+    
+    
+    
     if(link_status == 0){
-        //printf("MQTT客户端信息设置成功\r\n");
+        printf("MQTT客户端信息设置成功\r\n");
         link_status = 1;
     }else{
         printf("MQTT客户端信息设置失败\r\n");
@@ -295,9 +300,14 @@ u8 mqtt_init(void){
     //但 AT+MQTTCONN 命令在网络环境不好的情况下，可能需要更多的时间用来重传数据包。
     //当 MQTT 连接断开时，会提示 +MQTTDISCONNECTED:<LinkID> 消息。
     //当 MQTT 连接建立时，会提示 +MQTTCONNECTED:<LinkID>,<scheme>,<"host">,port,<"path">,<reconnect> 消息。
+    //<reconnect>：
+    //已经写了自动重连了。。。
+    //0: MQTT 不自动重连。如果 MQTT 建立连接后又断开，则无法再次使用本命令重新建立连接，您需要先发送 AT+MQTTCLEAN=0 命令清理信息，重新配置参数，再建立新的连接。
+    //1: MQTT 自动重连，会消耗较多的内存资源。后面在WiFi正常的情况下二次检测保证
     link_status = Esp32_SendandReceive("AT+MQTTCONN=0,\"gz-3-mqtt.iot-api.com\",1883,1\r\n", "OK", 10000);
+    
     if(link_status == 0){
-        //printf("MQTT连接成功\r\n");
+        printf("MQTT连接成功\r\n");
         link_status = 1;
     }else{
         printf("MQTT连接失败\r\n");
@@ -311,7 +321,7 @@ u8 mqtt_init(void){
     //订阅MQTT主题，指令不会超时重传
     link_status = Esp32_SendandReceive("AT+MQTTSUB=0,\"attributes/push\",1\r\n", "OK", 5000);
     if(link_status == 0){
-        //printf("MQTT订阅成功\r\n");
+        printf("MQTT订阅成功\r\n");
         link_status = 1;
     }else{
         printf("MQTT订阅失败\r\n");
